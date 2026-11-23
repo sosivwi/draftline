@@ -16,6 +16,7 @@ import {
   Clock,
   Eye,
   Edit3,
+  ChevronDown,
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { CATEGORIES, Category } from "@/lib/mock-posts";
@@ -253,6 +254,42 @@ function WriteForm() {
           throw insertError;
         }
 
+        // Re-sync user reward stats (+20 coins, increment streak)
+        let updatedCoins = 20;
+        let updatedStreak = 1;
+        try {
+          const { data: userProfile } = await supabase
+            .from("profiles")
+            .select("coins, streak_count")
+            .eq("id", user.id)
+            .single();
+
+          const prevCoins = userProfile?.coins ?? 0;
+          const prevStreak = userProfile?.streak_count ?? 0;
+          updatedCoins = prevCoins + 20;
+          updatedStreak = Math.max(1, prevStreak + 1);
+
+          await supabase
+            .from("profiles")
+            .update({
+              coins: updatedCoins,
+              streak_count: updatedStreak,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", user.id);
+        } catch (profileErr) {
+          console.warn("Failed to update profile coins/streak:", profileErr);
+        }
+
+        // Dispatch instant custom window event to notify Navbar without page reload
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(
+            new CustomEvent("draftline:rewards-updated", {
+              detail: { streak: updatedStreak, coins: updatedCoins },
+            })
+          );
+        }
+
         // Trigger cache revalidation
         fetch("/api/cron/refresh-stories", { method: "GET" }).catch(() => {});
 
@@ -352,39 +389,44 @@ function WriteForm() {
           </div>
 
           {/* Metadata Controls Bar */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-5 rounded-none bg-neutral-50 dark:bg-neutral-900/60 border border-neutral-200 dark:border-neutral-800">
-            {/* Category Selector */}
-            <div>
-              <label className="block font-mono text-xs uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">
-                Category
-              </label>
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value as Category)}
-                className="w-full px-3.5 py-2.5 rounded-none text-sm bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-white focus:outline-none focus:border-neutral-900 dark:focus:border-white transition-colors"
-              >
-                {CATEGORIES.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
-                ))}
-              </select>
-            </div>
+          <div className="p-5 rounded-none bg-neutral-50 dark:bg-neutral-900/60 border border-neutral-200 dark:border-neutral-800 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
+              {/* Category Selector */}
+              <div className="w-full">
+                <label className="block font-mono text-xs uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-2">
+                  Category
+                </label>
+                <div className="relative w-full">
+                  <select
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value as Category)}
+                    className="w-full h-11 px-4 pr-10 appearance-none rounded-none text-sm bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-white focus:outline-none focus:border-neutral-900 dark:focus:border-white transition-colors cursor-pointer box-border"
+                  >
+                    {CATEGORIES.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 dark:text-neutral-500" />
+                </div>
+              </div>
 
-            {/* Estimated Read Time (Calculated) */}
-            <div>
-              <label className="block font-mono text-xs uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1.5">
-                Estimated Read Time
-              </label>
-              <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-none text-sm bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-white">
-                <Clock className="w-4 h-4 text-neutral-400" />
-                <span className="font-mono text-xs">{readTimeMinutes} min read</span>
+              {/* Estimated Read Time (Calculated) */}
+              <div className="w-full">
+                <label className="block font-mono text-xs uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-2">
+                  Estimated Read Time
+                </label>
+                <div className="w-full h-11 px-4 flex items-center gap-2 rounded-none text-sm bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-white box-border">
+                  <Clock className="w-4 h-4 text-neutral-400 shrink-0" />
+                  <span className="font-mono text-xs">{readTimeMinutes} min read</span>
+                </div>
               </div>
             </div>
 
             {/* URL Slug */}
-            <div className="md:col-span-2">
-              <div className="flex items-center justify-between mb-1.5">
+            <div>
+              <div className="flex items-center justify-between mb-2">
                 <label className="font-mono text-xs uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
                   URL Slug
                 </label>
@@ -396,7 +438,7 @@ function WriteForm() {
                   {isCustomSlug ? "Auto-generate" : "Customize"}
                 </button>
               </div>
-              <div className="flex items-center px-3.5 py-2 rounded-none text-xs sm:text-sm bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-white">
+              <div className="flex items-center h-11 px-4 rounded-none text-xs sm:text-sm bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-white box-border">
                 <span className="text-neutral-400 font-mono select-none mr-1">
                   draftline.dev/posts/
                 </span>

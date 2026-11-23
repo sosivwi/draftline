@@ -229,20 +229,40 @@ export default async function PostPage({ params }: PostPageProps) {
 
       {/* Article Body */}
       <div className="w-full max-w-[1440px] mx-auto pb-16 sm:pb-24">
-        <div className="w-full max-w-none space-y-6 text-lg md:text-[19px] leading-[1.8] tracking-[0.005em] text-content-secondary">
-          {post.content.map((paragraph, idx) => (
-            <RevealText key={idx} threshold={0.05}>
-              <p
-                className={
-                  idx === 0
-                    ? "first-letter:font-bold first-letter:text-5xl first-letter:leading-none first-letter:mr-2.5 first-letter:float-left first-letter:text-content-primary text-content-primary"
-                    : ""
-                }
-              >
-                {paragraph}
-              </p>
-            </RevealText>
-          ))}
+        <div className="w-full max-w-none space-y-6 text-lg md:text-[19px] leading-[1.85] tracking-[0.005em] text-content-secondary">
+          {post.content.map((paragraph, idx) => {
+            if (paragraph.startsWith("## ")) {
+              return (
+                <RevealText key={idx} threshold={0.05}>
+                  <h2 className="font-sans font-bold text-2xl sm:text-3xl tracking-tight text-content-primary pt-8 pb-1">
+                    {paragraph.replace(/^##\s+/, "")}
+                  </h2>
+                </RevealText>
+              );
+            }
+            if (paragraph.startsWith("### ")) {
+              return (
+                <RevealText key={idx} threshold={0.05}>
+                  <h3 className="font-sans font-semibold text-xl sm:text-2xl tracking-tight text-content-primary pt-6 pb-1">
+                    {paragraph.replace(/^###\s+/, "")}
+                  </h3>
+                </RevealText>
+              );
+            }
+            return (
+              <RevealText key={idx} threshold={0.05}>
+                <p
+                  className={
+                    idx === 0
+                      ? "first-letter:font-bold first-letter:text-5xl first-letter:leading-none first-letter:mr-2.5 first-letter:float-left first-letter:text-content-primary text-content-primary"
+                      : ""
+                  }
+                >
+                  {paragraph}
+                </p>
+              </RevealText>
+            );
+          })}
 
           {/* Editorial Callout */}
           <RevealText threshold={0.05}>

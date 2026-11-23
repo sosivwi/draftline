@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
@@ -54,9 +54,9 @@ export function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Fetch user and profile
-  useEffect(() => {
-    async function loadUserData() {
+  // Fetch and refresh user profile data
+  const refreshProfile = useCallback(async () => {
+    try {
       const {
         data: { user: currentUser },
       } = await supabase.auth.getUser();
@@ -76,9 +76,45 @@ export function Navbar() {
       } else {
         setProfile(null);
       }
+    } catch (err) {
+      console.warn("Failed to refresh profile in navbar:", err);
     }
+  }, [supabase]);
 
-    loadUserData();
+  // Initial load, auth subscription, focus listener, and instant rewards listener
+  useEffect(() => {
+    refreshProfile();
+
+    // Re-query profile on window focus or tab visibility
+    const handleFocus = () => {
+      refreshProfile();
+    };
+    window.addEventListener("focus", handleFocus);
+
+    // Listen for custom event 'draftline:rewards-updated' for instant zero-refresh updates
+    const handleRewardsUpdated = (e: Event) => {
+      const customEvent = e as CustomEvent<{ streak?: number; coins?: number }>;
+      if (customEvent.detail) {
+        setProfile((prev) =>
+          prev
+            ? {
+                ...prev,
+                streak_count:
+                  customEvent.detail.streak !== undefined
+                    ? customEvent.detail.streak
+                    : prev.streak_count,
+                coins:
+                  customEvent.detail.coins !== undefined
+                    ? customEvent.detail.coins
+                    : prev.coins,
+              }
+            : prev
+        );
+      }
+      refreshProfile();
+    };
+
+    window.addEventListener("draftline:rewards-updated", handleRewardsUpdated);
 
     const {
       data: { subscription },
@@ -86,22 +122,18 @@ export function Navbar() {
       const authUser = session?.user ?? null;
       setUser(authUser);
       if (authUser) {
-        const { data: profileData } = await supabase
-          .from("profiles")
-          .select("full_name, username, avatar_url, streak_count, coins")
-          .eq("id", authUser.id)
-          .single();
-
-        setProfile(profileData ?? null);
+        refreshProfile();
       } else {
         setProfile(null);
       }
     });
 
     return () => {
+      window.removeEventListener("focus", handleFocus);
+      window.removeEventListener("draftline:rewards-updated", handleRewardsUpdated);
       subscription.unsubscribe();
     };
-  }, [supabase]);
+  }, [supabase, refreshProfile, pathname]);
 
   // Handle navbar hide/reveal on scroll
   useEffect(() => {
