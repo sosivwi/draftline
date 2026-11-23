@@ -2,11 +2,16 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Compass, Gem, Coffee, TrendingUp, ArrowRight, Sparkles } from "lucide-react";
 import { getLivePosts } from "@/lib/supabase-posts";
-import { CATEGORIES, Category } from "@/lib/mock-posts";
+import {
+  CATEGORIES,
+  Category,
+  slugifyCategory,
+  isCategoryMatch,
+} from "@/lib/mock-posts";
 import { ArticleCard } from "@/components/article-card";
 import { TextReveal } from "@/components/TextReveal";
 
-export const revalidate = 86400;
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Topics & Editorial Pillars",
@@ -68,9 +73,9 @@ const TOPIC_DETAILS: Record<
 export default async function TopicsPage() {
   const allPosts = await getLivePosts();
 
-  // Group stories by category
+  // Group stories by category with normalized matching
   const storiesByCategory = CATEGORIES.reduce((acc, cat) => {
-    acc[cat] = allPosts.filter((p) => p.category === cat);
+    acc[cat] = allPosts.filter((p) => isCategoryMatch(p.category, cat));
     return acc;
   }, {} as Record<Category, typeof allPosts>);
 
@@ -130,7 +135,7 @@ export default async function TopicsPage() {
                   </div>
 
                   <Link
-                    href={`/articles`}
+                    href={`/topics/${slugifyCategory(cat)}`}
                     className="inline-flex items-center gap-1.5 font-mono text-xs font-semibold text-neutral-950 dark:text-white hover:underline transition-all group pt-4 border-t border-neutral-200/60 dark:border-neutral-800/60"
                   >
                     <span>Explore all {cat} dispatches</span>
@@ -155,7 +160,7 @@ export default async function TopicsPage() {
                     Featured in {cat}
                   </h3>
                   <Link
-                    href={`/articles`}
+                    href={`/topics/${slugifyCategory(cat)}`}
                     className="font-mono text-xs text-neutral-500 hover:text-neutral-950 dark:hover:text-white transition-colors"
                   >
                     See all ({storiesByCategory[cat]?.length}) →

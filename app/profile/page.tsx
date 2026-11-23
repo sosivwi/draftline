@@ -27,6 +27,7 @@ import {
   X,
   FileText,
   Calendar,
+  ChevronDown,
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { CATEGORIES, Category } from "@/lib/mock-posts";
@@ -498,7 +499,7 @@ export default function ProfilePage() {
 
   return (
     <div className="w-full text-content-primary">
-      <div className="w-full max-w-[1440px] mx-auto">
+      <div className="w-[90%] mx-auto pb-16">
         {/* Navigation & Header Actions */}
         <div className="flex items-center justify-between mb-8 pb-4 border-b border-border-subtle">
           <Link
@@ -553,10 +554,10 @@ export default function ProfilePage() {
             </div>
             <div>
               <p className="text-[11px] font-medium tracking-[0.12em] uppercase text-neutral-500">
-                Daily Streak
+                Story Streak
               </p>
               <p className="font-sans font-bold text-2xl text-content-primary">
-                {streakCount} {streakCount === 1 ? "Day" : "Days"}
+                {streakCount} {streakCount === 1 ? "Story" : "Stories"}
               </p>
             </div>
           </div>
@@ -982,9 +983,9 @@ export default function ProfilePage() {
             ========================================================================= */}
         {editingStory && (
           <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
-            <div className="w-full max-w-2xl bg-surface-card border border-neutral-300 dark:border-neutral-800 rounded-none shadow-2xl p-6 sm:p-8 my-8 relative">
-              {/* Header */}
-              <div className="flex items-center justify-between pb-4 border-b border-border-subtle mb-6">
+            <div className="w-full max-w-2xl max-h-[85vh] flex flex-col bg-surface-card border border-neutral-300 dark:border-neutral-800 rounded-none shadow-2xl relative my-auto overflow-hidden">
+              {/* Sticky Header */}
+              <div className="sticky top-0 z-10 bg-surface-card flex items-center justify-between p-6 pb-4 border-b border-border-subtle shrink-0">
                 <div>
                   <h3 className="font-sans font-bold text-xl text-content-primary">
                     Edit Story
@@ -1002,154 +1003,161 @@ export default function ProfilePage() {
                 </button>
               </div>
 
-              {/* Edit Error Notification */}
-              {editErrorMessage && (
-                <div className="mb-5 p-3 rounded-none bg-red-500/10 border border-red-500/20 text-red-500 text-xs flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 shrink-0" />
-                  <span>{editErrorMessage}</span>
-                </div>
-              )}
-
-              {/* Edit Form */}
-              <form onSubmit={handleSaveEdit} className="space-y-5">
-                {/* Title */}
-                <div>
-                  <label className="block font-mono text-xs text-content-secondary mb-1.5">
-                    Story Title
-                  </label>
-                  <input
-                    type="text"
-                    value={editTitle}
-                    onChange={(e) => setEditTitle(e.target.value)}
-                    required
-                    placeholder="Title of your story..."
-                    className="w-full px-3.5 py-2 rounded-none bg-surface-upper border border-border-subtle text-content-primary font-bold text-base focus:outline-none focus:ring-1 focus:ring-accent"
-                  />
-                </div>
-
-                {/* Category & Read Time */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block font-mono text-xs text-content-secondary mb-1.5">
-                      Category
-                    </label>
-                    <select
-                      value={editCategory}
-                      onChange={(e) => setEditCategory(e.target.value as Category)}
-                      className="w-full px-3.5 py-2 rounded-none bg-surface-upper border border-border-subtle text-content-primary text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-accent"
-                    >
-                      {CATEGORIES.map((cat) => (
-                        <option key={cat} value={cat}>
-                          {cat}
-                        </option>
-                      ))}
-                    </select>
+              {/* Scrollable Form Body */}
+              <div className="overflow-y-auto p-6 sm:p-8 flex-1">
+                {/* Edit Error Notification */}
+                {editErrorMessage && (
+                  <div className="mb-5 p-3 rounded-none bg-red-500/10 border border-red-500/20 text-red-500 text-xs flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>{editErrorMessage}</span>
                   </div>
+                )}
 
+                {/* Edit Form */}
+                <form id="edit-story-form" onSubmit={handleSaveEdit} className="space-y-6">
+                  {/* Title */}
                   <div>
-                    <label className="block font-mono text-xs text-content-secondary mb-1.5">
-                      Estimated Read Time (Minutes)
+                    <label className="block font-mono text-xs uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-2">
+                      Story Title
                     </label>
                     <input
-                      type="number"
-                      min={1}
-                      max={60}
-                      value={editReadTime}
-                      onChange={(e) => setEditReadTime(Number(e.target.value))}
-                      className="w-full px-3.5 py-2 rounded-none bg-surface-upper border border-border-subtle text-content-primary text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-accent"
+                      type="text"
+                      value={editTitle}
+                      onChange={(e) => setEditTitle(e.target.value)}
+                      required
+                      placeholder="Title of your story..."
+                      className="w-full h-11 px-4 rounded-none bg-surface-upper border border-border-subtle text-content-primary font-bold text-base focus:outline-none focus:border-neutral-900 dark:focus:border-white transition-colors box-border"
                     />
                   </div>
-                </div>
 
-                {/* Cover Image */}
-                <div>
-                  <label className="block font-mono text-xs text-content-secondary mb-1.5">
-                    Cover Image URL
-                  </label>
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="url"
-                      value={editCoverImageUrl}
-                      onChange={(e) => setEditCoverImageUrl(e.target.value)}
-                      placeholder="https://images.unsplash.com/..."
-                      className="flex-1 px-3.5 py-2 rounded-none bg-surface-upper border border-border-subtle text-content-primary text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-accent"
-                    />
-                    <label className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-2 rounded-none text-xs font-semibold bg-surface-upper border border-border-subtle hover:bg-surface-muted text-content-primary transition-colors shrink-0">
-                      <Upload className="w-3.5 h-3.5" />
-                      <span>{uploadingEditCover ? "Uploading..." : "Upload"}</span>
+                  {/* Balanced Category & Read Time */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-end">
+                    <div className="w-full">
+                      <label className="block font-mono text-xs uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-2">
+                        Category
+                      </label>
+                      <div className="relative w-full">
+                        <select
+                          value={editCategory}
+                          onChange={(e) => setEditCategory(e.target.value as Category)}
+                          className="w-full h-11 px-4 pr-10 appearance-none rounded-none text-sm bg-surface-upper border border-border-subtle text-content-primary focus:outline-none focus:border-neutral-900 dark:focus:border-white transition-colors cursor-pointer box-border"
+                        >
+                          {CATEGORIES.map((cat) => (
+                            <option key={cat} value={cat}>
+                              {cat}
+                            </option>
+                          ))}
+                        </select>
+                        <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 dark:text-neutral-500" />
+                      </div>
+                    </div>
+
+                    <div className="w-full">
+                      <label className="block font-mono text-xs uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-2">
+                        Estimated Read Time (Minutes)
+                      </label>
                       <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleEditCoverUpload}
-                        disabled={uploadingEditCover}
-                        className="hidden"
+                        type="number"
+                        min={1}
+                        max={60}
+                        value={editReadTime}
+                        onChange={(e) => setEditReadTime(Number(e.target.value))}
+                        className="w-full h-11 px-4 rounded-none bg-surface-upper border border-border-subtle text-content-primary text-sm focus:outline-none focus:border-neutral-900 dark:focus:border-white transition-colors box-border"
                       />
+                    </div>
+                  </div>
+
+                  {/* Cover Image */}
+                  <div>
+                    <label className="block font-mono text-xs uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-2">
+                      Cover Image URL
                     </label>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="url"
+                        value={editCoverImageUrl}
+                        onChange={(e) => setEditCoverImageUrl(e.target.value)}
+                        placeholder="https://images.unsplash.com/..."
+                        className="flex-1 h-11 px-4 rounded-none bg-surface-upper border border-border-subtle text-content-primary text-xs sm:text-sm focus:outline-none focus:border-neutral-900 dark:focus:border-white transition-colors box-border"
+                      />
+                      <label className="cursor-pointer inline-flex items-center justify-center gap-1.5 h-11 px-4 rounded-none text-xs font-semibold bg-surface-upper border border-border-subtle hover:bg-surface-muted text-content-primary transition-colors shrink-0 box-border">
+                        <Upload className="w-3.5 h-3.5" />
+                        <span>{uploadingEditCover ? "Uploading..." : "Upload"}</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleEditCoverUpload}
+                          disabled={uploadingEditCover}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
                   </div>
-                </div>
 
-                {/* Excerpt / Lead */}
-                <div>
-                  <label className="block font-mono text-xs text-content-secondary mb-1.5">
-                    Excerpt / Standfirst
-                  </label>
-                  <textarea
-                    rows={2}
-                    value={editExcerpt}
-                    onChange={(e) => setEditExcerpt(e.target.value)}
-                    placeholder="Short 1-2 sentence lead..."
-                    className="w-full px-3.5 py-2 rounded-none bg-surface-upper border border-border-subtle text-content-primary text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-accent resize-none leading-relaxed"
-                  />
-                </div>
+                  {/* Excerpt / Lead */}
+                  <div>
+                    <label className="block font-mono text-xs uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-2">
+                      Excerpt / Standfirst
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={editExcerpt}
+                      onChange={(e) => setEditExcerpt(e.target.value)}
+                      placeholder="Short 1-2 sentence lead..."
+                      className="w-full p-4 rounded-none bg-surface-upper border border-border-subtle text-content-primary text-xs sm:text-sm focus:outline-none focus:border-neutral-900 dark:focus:border-white transition-colors resize-none leading-relaxed box-border"
+                    />
+                  </div>
 
-                {/* Content */}
-                <div>
-                  <label className="block font-mono text-xs text-content-secondary mb-1.5">
-                    Story Body Content
-                  </label>
-                  <textarea
-                    rows={7}
-                    value={editContent}
-                    onChange={(e) => setEditContent(e.target.value)}
-                    placeholder="Write or edit the paragraphs of your story..."
-                    className="w-full px-3.5 py-2 rounded-none bg-surface-upper border border-border-subtle text-content-primary text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-accent resize-y leading-relaxed"
-                  />
-                </div>
+                  {/* Content */}
+                  <div>
+                    <label className="block font-mono text-xs uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-2">
+                      Story Body Content
+                    </label>
+                    <textarea
+                      rows={6}
+                      value={editContent}
+                      onChange={(e) => setEditContent(e.target.value)}
+                      placeholder="Write or edit the paragraphs of your story..."
+                      className="w-full p-4 rounded-none bg-surface-upper border border-border-subtle text-content-primary text-xs sm:text-sm focus:outline-none focus:border-neutral-900 dark:focus:border-white transition-colors resize-y leading-relaxed box-border"
+                    />
+                  </div>
+                </form>
+              </div>
 
-                {/* Modal Actions */}
-                <div className="flex items-center justify-between pt-4 border-t border-border-subtle">
-                  <Link
-                    href={`/write?edit=${editingStory.id}`}
-                    className="text-xs font-mono text-content-muted hover:text-content-primary underline"
+              {/* Sticky Footer Action Buttons */}
+              <div className="sticky bottom-0 z-10 bg-surface-card flex items-center justify-between p-6 pt-4 border-t border-border-subtle shrink-0">
+                <Link
+                  href={`/write?edit=${editingStory.id}`}
+                  className="text-xs font-mono text-content-muted hover:text-content-primary underline"
+                >
+                  Open in full editor →
+                </Link>
+
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setEditingStory(null)}
+                    className="px-4 py-2.5 rounded-none text-xs font-medium border border-border-subtle hover:bg-surface-muted transition-colors"
                   >
-                    Open in full editor →
-                  </Link>
-
-                  <div className="flex items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setEditingStory(null)}
-                      className="px-4 py-2 rounded-none text-xs font-medium border border-border-subtle hover:bg-surface-muted transition-colors"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={isSavingEdit}
-                      className="inline-flex items-center gap-2 px-5 py-2 rounded-none text-xs font-semibold bg-neutral-900 text-neutral-100 dark:bg-white dark:text-neutral-950 hover:opacity-90 transition-opacity disabled:opacity-50"
-                    >
-                      {isSavingEdit ? (
-                        <>
-                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                          <span>Saving...</span>
-                        </>
-                      ) : (
-                        <span>Save Changes</span>
-                      )}
-                    </button>
-                  </div>
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    form="edit-story-form"
+                    disabled={isSavingEdit}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-none text-xs font-semibold bg-neutral-900 text-neutral-100 dark:bg-white dark:text-neutral-950 hover:opacity-90 transition-opacity disabled:opacity-50"
+                  >
+                    {isSavingEdit ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Saving...</span>
+                      </>
+                    ) : (
+                      <span>Save Changes</span>
+                    )}
+                  </button>
                 </div>
-              </form>
+              </div>
             </div>
           </div>
         )}

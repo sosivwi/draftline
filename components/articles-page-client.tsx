@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
-import { Post, Category } from "@/lib/mock-posts";
+import React, { useState, useMemo, useEffect } from "react";
+import { Post, Category, isCategoryMatch } from "@/lib/mock-posts";
 import { ArticleCard } from "./article-card";
 import { PostCardSkeleton } from "./post-card-skeleton";
 import { TextReveal } from "./TextReveal";
@@ -26,10 +26,22 @@ export function ArticlesPageClient({
   allPosts,
   initialCategory = "All",
 }: ArticlesPageClientProps) {
+  // Resolve initial category with normalized matching
+  const resolvedInitial = useMemo<FilterCategory>(() => {
+    if (!initialCategory || initialCategory === "All") return "All";
+    const found = CATEGORIES_TABS.find((cat) => isCategoryMatch(cat, initialCategory));
+    return found || "All";
+  }, [initialCategory]);
+
   const [selectedCategory, setSelectedCategory] =
-    useState<FilterCategory>(initialCategory);
+    useState<FilterCategory>(resolvedInitial);
   const [visibleCount, setVisibleCount] = useState<number>(6);
   const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
+
+  // Sync state if initialCategory changes
+  useEffect(() => {
+    setSelectedCategory(resolvedInitial);
+  }, [resolvedInitial]);
 
   // Reset pagination to 6 when switching categories
   const handleSelectCategory = (cat: FilterCategory) => {
@@ -38,12 +50,12 @@ export function ArticlesPageClient({
     setIsLoadingMore(false);
   };
 
-  // Filter posts based on active category
+  // Filter posts based on active category using normalized matching
   const filteredGridPosts = useMemo(() => {
     if (selectedCategory === "All") {
       return allPosts;
     }
-    return allPosts.filter((p) => p.category === selectedCategory);
+    return allPosts.filter((p) => isCategoryMatch(p.category, selectedCategory));
   }, [allPosts, selectedCategory]);
 
   // Sliced posts for pagination

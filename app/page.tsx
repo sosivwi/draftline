@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import { getLivePosts } from "@/lib/supabase-posts";
 import { HomePageClient } from "@/components/home-page-client";
 
-// Daily revalidation: 86400 seconds (24 hours) with on-demand purge via /api/cron/refresh-stories
-export const revalidate = 86400;
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Draftline — Contemporary Editorial Journal",

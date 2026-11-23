@@ -31,6 +31,70 @@ export const CATEGORIES: Category[] = [
   "Business, Money & Entrepreneurship",
 ];
 
+export function slugifyCategory(cat: string): string {
+  return cat
+    .toLowerCase()
+    .replace(/&/g, "and")
+    .replace(/[^\w\s-]/g, "")
+    .trim()
+    .replace(/[\s_-]+/g, "-");
+}
+
+export function isCategoryMatch(
+  postCategory?: string | null,
+  targetCategory?: string | null
+): boolean {
+  if (!targetCategory || targetCategory.toLowerCase() === "all") return true;
+  if (!postCategory) return false;
+
+  const pLower = postCategory.toLowerCase().trim();
+  const tLower = targetCategory.toLowerCase().trim();
+  if (pLower === tLower) return true;
+
+  const pSlug = slugifyCategory(postCategory);
+  const tSlug = slugifyCategory(targetCategory);
+  if (pSlug === tSlug) return true;
+
+  // Substring or prefix matches
+  if (pSlug.includes(tSlug) || tSlug.includes(pSlug)) return true;
+
+  // Common editorial aliases
+  const aliases: Record<string, string[]> = {
+    "travel-places": ["travel", "travel-places", "travel-and-places", "journeys", "destinations"],
+    "fashion-culture": [
+      "fashion",
+      "culture",
+      "fashion-culture",
+      "fashion-and-culture",
+      "style",
+      "art",
+    ],
+    "lifestyle-modern-living": [
+      "lifestyle",
+      "living",
+      "lifestyle-modern-living",
+      "wellness",
+      "architecture",
+    ],
+    "business-money-entrepreneurship": [
+      "business",
+      "money",
+      "entrepreneurship",
+      "ventures",
+      "strategy",
+      "business-money-entrepreneurship",
+    ],
+  };
+
+  for (const [key, list] of Object.entries(aliases)) {
+    const targetMatches = tSlug === key || list.includes(tSlug);
+    const postMatches = pSlug === key || list.includes(pSlug);
+    if (targetMatches && postMatches) return true;
+  }
+
+  return false;
+}
+
 export const MOCK_POSTS: Post[] = [
   {
     id: "post-1",

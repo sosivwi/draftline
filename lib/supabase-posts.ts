@@ -1,5 +1,11 @@
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
-import { MOCK_POSTS, Post, Category, getDailyFeaturedPost } from "@/lib/mock-posts";
+import {
+  MOCK_POSTS,
+  Post,
+  Category,
+  getDailyFeaturedPost,
+  isCategoryMatch,
+} from "@/lib/mock-posts";
 
 function getPublicSupabase() {
   return createSupabaseClient(
@@ -95,17 +101,30 @@ export async function getLivePosts(): Promise<Post[]> {
     }
 
     const livePosts = data.map(formatSupabasePost);
-    if (livePosts.length > 0) {
-      const dailyFeatured = getDailyFeaturedPost(livePosts);
-      livePosts.forEach((p) => {
+    // Combine fresh Supabase stories (at the top) with non-colliding editorial archive
+    const existingSlugs = new Set(livePosts.map((p) => p.slug.toLowerCase()));
+    const existingIds = new Set(livePosts.map((p) => p.id));
+    const supplementalMocks = MOCK_POSTS.filter(
+      (m) => !existingSlugs.has(m.slug.toLowerCase()) && !existingIds.has(m.id)
+    );
+    const combinedPosts = [...livePosts, ...supplementalMocks];
+
+    if (combinedPosts.length > 0) {
+      const dailyFeatured = getDailyFeaturedPost(combinedPosts);
+      combinedPosts.forEach((p) => {
         p.featured = p.id === dailyFeatured.id;
       });
     }
-    return livePosts;
+    return combinedPosts;
   } catch (err) {
     console.error("Error fetching live posts from Supabase:", err);
     return MOCK_POSTS;
   }
+}
+
+export async function getLivePostsByCategory(categorySlug: string): Promise<Post[]> {
+  const posts = await getLivePosts();
+  return posts.filter((p) => isCategoryMatch(p.category, categorySlug));
 }
 
 export async function getLivePostBySlug(slug: string): Promise<Post | null> {

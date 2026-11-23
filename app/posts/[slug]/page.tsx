@@ -121,10 +121,10 @@ export default async function PostPage({ params }: PostPageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
       />
       {/* Article Header Container */}
-      <div className="w-full max-w-[1440px] mx-auto pb-8">
+      <div className="w-[90%] mx-auto pt-8 pb-8">
         {/* Navigation Breadcrumb */}
         <Link
-          href="/"
+          href="/articles"
           className="inline-flex items-center gap-2 text-xs sm:text-sm font-mono text-content-secondary hover:text-content-primary transition-colors mb-8 group"
         >
           <ArrowLeft className="w-4 h-4 transition-transform duration-200 group-hover:-translate-x-1" />
@@ -209,13 +209,13 @@ export default async function PostPage({ params }: PostPageProps) {
       </div>
 
       {/* Hero Image */}
-      <div className="w-full max-w-[1440px] mx-auto mb-12 sm:mb-16">
+      <div className="w-[90%] mx-auto mb-12 sm:mb-16">
         <div className="relative w-full h-[380px] sm:h-[500px] lg:h-[620px] rounded-none overflow-hidden bg-neutral-100 dark:bg-neutral-900">
           <EditorialImage
             src={post.coverImage}
             alt={post.title}
             fill
-            sizes="(max-width: 1440px) 90vw, 1440px"
+            sizes="90vw"
             priority
             className="w-full h-full object-cover rounded-none"
           />
@@ -228,7 +228,7 @@ export default async function PostPage({ params }: PostPageProps) {
       </div>
 
       {/* Article Body */}
-      <div className="w-full max-w-[1440px] mx-auto pb-16 sm:pb-24">
+      <div className="w-[90%] mx-auto pb-16 sm:pb-24">
         <div className="w-full max-w-none space-y-6 text-lg md:text-[19px] leading-[1.85] tracking-[0.005em] text-content-secondary">
           {post.content.map((paragraph, idx) => {
             if (paragraph.startsWith("## ")) {
@@ -282,16 +282,18 @@ export default async function PostPage({ params }: PostPageProps) {
 
       {/* Related Stories Band (Surface Lower) */}
       <section className="border-t border-border-subtle bg-surface-lower py-16">
-        <div className="w-full max-w-[1440px] mx-auto">
-          <div className="flex items-center justify-between mb-8">
-            <h3 className="font-sans font-bold text-2xl tracking-tight text-content-primary">
+        <div className="w-[90%] mx-auto">
+          {/* Header Bar with balanced padding and baseline alignment */}
+          <div className="flex items-center justify-between gap-4 px-6 md:px-8 py-5 mb-8 rounded-none border border-neutral-200 dark:border-neutral-800 bg-neutral-50/80 dark:bg-neutral-900/60">
+            <h3 className="font-sans font-bold text-xl sm:text-2xl tracking-tight text-neutral-950 dark:text-white">
               More from Draftline
             </h3>
             <Link
-              href="/"
-              className="font-mono text-xs text-accent hover:underline"
+              href="/articles"
+              className="inline-flex items-center gap-1.5 font-mono text-xs font-semibold text-neutral-600 dark:text-neutral-400 hover:text-neutral-950 dark:hover:text-white transition-colors group shrink-0"
             >
-              View all articles →
+              <span>View all articles</span>
+              <span className="transition-transform duration-200 group-hover:translate-x-1">→</span>
             </Link>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

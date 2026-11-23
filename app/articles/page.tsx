@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { getLivePosts } from "@/lib/supabase-posts";
 import { ArticlesPageClient } from "@/components/articles-page-client";
 
-export const revalidate = 86400; // 24-hour cache with on-demand purge via /api/cron/refresh-stories
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "All Articles — Complete Editorial Archive",
@@ -27,8 +27,19 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function ArticlesPage() {
-  const allPosts = await getLivePosts();
+interface ArticlesPageProps {
+  searchParams?: Promise<{ category?: string }>;
+}
 
-  return <ArticlesPageClient allPosts={allPosts} />;
+export default async function ArticlesPage({ searchParams }: ArticlesPageProps) {
+  const allPosts = await getLivePosts();
+  const resolvedParams = searchParams ? await searchParams : undefined;
+  const initialCategory = resolvedParams?.category || "All";
+
+  return (
+    <ArticlesPageClient
+      allPosts={allPosts}
+      initialCategory={initialCategory as any}
+    />
+  );
 }

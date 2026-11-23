@@ -224,9 +224,9 @@ export function Navbar() {
             <div className="flex items-center gap-2 sm:gap-3">
               {/* Streak & Coins Badge */}
               <div
-                title={`Streak: ${profile?.streak_count ?? 0} days | Coins: ${
-                  profile?.coins ?? 0
-                }`}
+                title={`Story Streak: ${profile?.streak_count ?? 0} ${
+                  profile?.streak_count === 1 ? "Story" : "Stories"
+                } | Coins: ${profile?.coins ?? 0}`}
                 className="hidden sm:inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-mono bg-surface-muted border border-border-subtle text-content-primary select-none"
               >
                 <span className="inline-flex items-center gap-1 text-amber-500 font-semibold">
