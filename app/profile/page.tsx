@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
+import { EditorialImage } from "@/components/editorial-image";
 import {
   ArrowLeft,
   User,
@@ -496,8 +497,8 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="w-full bg-surface-upper text-content-primary py-8 sm:py-12">
-      <div className="w-[90%] max-w-[1440px] mx-auto">
+    <div className="w-full text-content-primary">
+      <div className="w-full max-w-[1440px] mx-auto">
         {/* Navigation & Header Actions */}
         <div className="flex items-center justify-between mb-8 pb-4 border-b border-border-subtle">
           <Link
@@ -685,8 +686,8 @@ export default function ProfilePage() {
                       {/* Left: Thumbnail + Story Meta */}
                       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-5 flex-1 min-w-0">
                         {/* Cover Thumbnail */}
-                        <div className="relative w-full sm:w-36 h-28 sm:h-24 bg-surface-muted rounded-none overflow-hidden shrink-0 border border-border-subtle">
-                          <Image
+                        <div className="relative w-full sm:w-36 h-28 sm:h-24 bg-neutral-100 dark:bg-neutral-900 rounded-none overflow-hidden shrink-0 border border-border-subtle">
+                          <EditorialImage
                             src={
                               story.cover_image_url ||
                               "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=600&q=80"
@@ -797,7 +798,7 @@ export default function ProfilePage() {
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
                 <div className="relative w-20 h-20 rounded-none overflow-hidden border border-border-strong bg-surface-muted flex items-center justify-center text-content-muted shrink-0">
                   {avatarUrl ? (
-                    <Image
+                    <EditorialImage
                       src={avatarUrl}
                       alt={fullName || "Avatar"}
                       fill

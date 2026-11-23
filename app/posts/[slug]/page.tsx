@@ -6,6 +6,7 @@ import { ArrowLeft, Calendar, Clock, Share2, Bookmark } from "lucide-react";
 import { getLivePostBySlug, getLivePosts } from "@/lib/supabase-posts";
 import { ArticleCard } from "@/components/article-card";
 import { RevealText } from "@/components/RevealText";
+import { EditorialImage } from "@/components/editorial-image";
 
 interface PostPageProps {
   params: Promise<{ slug: string }>;
@@ -120,7 +121,7 @@ export default async function PostPage({ params }: PostPageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
       />
       {/* Article Header Container */}
-      <div className="w-[90%] max-w-[1440px] mx-auto pt-8 sm:pt-12 pb-8">
+      <div className="w-full max-w-[1440px] mx-auto pb-8">
         {/* Navigation Breadcrumb */}
         <Link
           href="/"
@@ -208,9 +209,9 @@ export default async function PostPage({ params }: PostPageProps) {
       </div>
 
       {/* Hero Image */}
-      <div className="w-[90%] max-w-[1440px] mx-auto mb-12 sm:mb-16">
-        <div className="relative w-full h-[380px] sm:h-[500px] lg:h-[620px] rounded-none overflow-hidden bg-surface-muted">
-          <Image
+      <div className="w-full max-w-[1440px] mx-auto mb-12 sm:mb-16">
+        <div className="relative w-full h-[380px] sm:h-[500px] lg:h-[620px] rounded-none overflow-hidden bg-neutral-100 dark:bg-neutral-900">
+          <EditorialImage
             src={post.coverImage}
             alt={post.title}
             fill
@@ -227,7 +228,7 @@ export default async function PostPage({ params }: PostPageProps) {
       </div>
 
       {/* Article Body */}
-      <div className="w-[90%] max-w-[1440px] mx-auto pb-16 sm:pb-24">
+      <div className="w-full max-w-[1440px] mx-auto pb-16 sm:pb-24">
         <div className="w-full max-w-none space-y-6 text-lg md:text-[19px] leading-[1.8] tracking-[0.005em] text-content-secondary">
           {post.content.map((paragraph, idx) => (
             <RevealText key={idx} threshold={0.05}>
@@ -261,7 +262,7 @@ export default async function PostPage({ params }: PostPageProps) {
 
       {/* Related Stories Band (Surface Lower) */}
       <section className="border-t border-border-subtle bg-surface-lower py-16">
-        <div className="w-[90%] max-w-[1440px] mx-auto">
+        <div className="w-full max-w-[1440px] mx-auto">
           <div className="flex items-center justify-between mb-8">
             <h3 className="font-sans font-bold text-2xl tracking-tight text-content-primary">
               More from Draftline

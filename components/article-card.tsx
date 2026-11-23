@@ -1,9 +1,9 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { Post } from "@/lib/mock-posts";
 import { RevealText } from "@/components/RevealText";
+import { EditorialImage } from "@/components/editorial-image";
 
 interface ArticleCardProps {
   post: Post;
@@ -16,14 +16,14 @@ export function ArticleCard({ post }: ArticleCardProps) {
       className="group block rounded-none select-none focus:outline-none focus-visible:ring-1 focus-visible:ring-neutral-400"
     >
       <article className="rounded-none bg-transparent">
-        {/* Cover image container: completely sharp 90-degree corners (rounded-none), aspect 16/10, subtle hover zoom */}
+        {/* Cover image container: completely sharp 90-degree corners (rounded-none), aspect 16/10, smooth hover zoom & loading state */}
         <div className="relative w-full aspect-[16/10] overflow-hidden rounded-none bg-neutral-100 dark:bg-neutral-900">
-          <Image
+          <EditorialImage
             src={post.coverImage}
             alt={post.title}
             fill
             sizes="(max-width: 768px) 100vw, 50vw"
-            className="object-cover rounded-none transition-transform duration-500 ease-out group-hover:scale-[1.02]"
+            className="group-hover:scale-[1.03] transition-transform duration-700 ease-out"
           />
         </div>
 

@@ -8,6 +8,7 @@ import { ScrollToTop } from "@/components/scroll-to-top";
 import { SmoothScroll } from "@/components/SmoothScroll";
 import { PageTransition } from "@/components/PageTransition";
 import { RoutePreloader } from "@/components/RoutePreloader";
+import { HomepagePreloader } from "@/components/HomepagePreloader";
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
@@ -138,11 +139,12 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          <HomepagePreloader />
           <RoutePreloader />
           <SmoothScroll />
           <div className="flex-1 flex flex-col">
             <Navbar />
-            <main className="flex-1">
+            <main className="w-[90%] mx-auto py-12 flex-1">
               <PageTransition>{children}</PageTransition>
             </main>
             <Footer />

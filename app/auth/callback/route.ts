@@ -2,14 +2,22 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url);
-  const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/";
-  const errorDescription = searchParams.get("error_description");
+  const requestUrl = new URL(request.url);
+  const code = requestUrl.searchParams.get("code");
+  const rawNext = requestUrl.searchParams.get("next") ?? "/";
+  // Safe redirect check: ensure next is a relative path to prevent open redirect
+  const next = rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "/";
+  const errorDescription = requestUrl.searchParams.get("error_description");
+
+  const forwardedHost = request.headers.get("x-forwarded-host");
+  const forwardedProto = request.headers.get("x-forwarded-proto") || "https";
+  const baseOrigin = forwardedHost
+    ? `${forwardedProto}://${forwardedHost}`
+    : requestUrl.origin;
 
   if (errorDescription) {
     return NextResponse.redirect(
-      `${origin}/login?error=${encodeURIComponent(errorDescription)}`
+      `${baseOrigin}/login?error=${encodeURIComponent(errorDescription)}`
     );
   }
 
@@ -17,23 +25,15 @@ export async function GET(request: Request) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
-      const forwardedHost = request.headers.get("x-forwarded-host");
-      const isLocalEnv = process.env.NODE_ENV === "development";
-      if (isLocalEnv) {
-        return NextResponse.redirect(`${origin}${next}`);
-      } else if (forwardedHost) {
-        return NextResponse.redirect(`https://${forwardedHost}${next}`);
-      } else {
-        return NextResponse.redirect(`${origin}${next}`);
-      }
+      return NextResponse.redirect(`${baseOrigin}${next}`);
     } else {
       return NextResponse.redirect(
-        `${origin}/login?error=${encodeURIComponent(error.message)}`
+        `${baseOrigin}/login?error=${encodeURIComponent(error.message)}`
       );
     }
   }
 
   return NextResponse.redirect(
-    `${origin}/login?error=Could%20not%20authenticate%20user`
+    `${baseOrigin}/login?error=Could%20not%20authenticate%20user`
   );
 }

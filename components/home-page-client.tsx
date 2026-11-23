@@ -63,12 +63,12 @@ export function HomePageClient({ allPosts }: HomePageClientProps) {
   };
 
   return (
-    <div className="w-full bg-surface-upper text-content-primary min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
+    <div className="w-full text-content-primary">
+      <div className="w-full pb-20">
         {/* =========================================================================
             SPLIT EDITORIAL HEADER
             ========================================================================= */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pt-10 pb-8 border-b border-border-subtle/50">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-8 border-b border-border-subtle/50">
           <div>
             <RevealText delay={0}>
               <h1 className="text-5xl md:text-6xl font-extrabold tracking-[-0.025em] leading-[1.15] text-neutral-950 dark:text-white">

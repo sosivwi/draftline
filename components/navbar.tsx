@@ -36,6 +36,7 @@ export function Navbar() {
 
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [avatarError, setAvatarError] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -143,7 +144,7 @@ export function Navbar() {
         isVisible ? "translate-y-0" : "-translate-y-full"
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div className="w-[90%] mx-auto h-16 flex items-center justify-between">
         {/* Left: Brand Wordmark + DraftlineLogo */}
         <div className="flex items-center gap-6 lg:gap-8 shrink-0">
           <Link
@@ -227,13 +228,14 @@ export function Navbar() {
                   aria-expanded={isDropdownOpen}
                 >
                   <div className="relative w-8 h-8 rounded-full overflow-hidden bg-surface-muted border border-border-subtle flex items-center justify-center text-content-secondary">
-                    {profile?.avatar_url ? (
+                    {profile?.avatar_url && !avatarError ? (
                       <Image
                         src={profile.avatar_url}
                         alt={profile.full_name || "User avatar"}
                         fill
                         sizes="32px"
                         className="object-cover"
+                        onError={() => setAvatarError(true)}
                       />
                     ) : (
                       <User className="w-4 h-4" />

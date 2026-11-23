@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
+import { EditorialImage } from "@/components/editorial-image";
 import {
   ArrowLeft,
   Upload,
@@ -294,8 +295,8 @@ function WriteForm() {
   }
 
   return (
-    <div className="w-full bg-white dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 py-8 sm:py-12">
-      <div className="w-[90%] max-w-[1100px] mx-auto px-4 sm:px-6">
+    <div className="w-full text-neutral-900 dark:text-neutral-100">
+      <div className="w-full max-w-[1100px] mx-auto">
         {/* Top Navigation */}
         <div className="flex items-center justify-between gap-4 w-full mb-8">
           <Link
@@ -422,7 +423,7 @@ function WriteForm() {
 
             {coverImageUrl ? (
               <div className="relative w-full aspect-[16/9] sm:aspect-[21/9] rounded-none overflow-hidden border border-neutral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-900 group">
-                <Image
+                <EditorialImage
                   src={coverImageUrl}
                   alt="Cover preview"
                   fill

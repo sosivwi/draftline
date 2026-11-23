@@ -1,9 +1,9 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Clock, Calendar } from "lucide-react";
 import { Post } from "@/lib/mock-posts";
+import { EditorialImage } from "@/components/editorial-image";
 
 interface FeaturedPostProps {
   post: Post;
@@ -11,19 +11,18 @@ interface FeaturedPostProps {
 
 export function FeaturedPost({ post }: FeaturedPostProps) {
   return (
-    <article className="group relative rounded-3xl border border-border-subtle bg-surface-card p-4 sm:p-6 lg:p-8 transition-all duration-300 hover:border-border-strong hover:shadow-xl dark:hover:shadow-2xl dark:hover:shadow-black/40">
+    <article className="group relative rounded-none border border-border-subtle bg-surface-card p-4 sm:p-6 lg:p-8 transition-all duration-300 hover:border-border-strong">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-stretch">
-        {/* Left (~60% = 7 cols on lg): Large rounded cover image with subtle hover zoom */}
-        <div className="lg:col-span-7 relative w-full aspect-[16/10] sm:aspect-[16/9] lg:aspect-[16/10] min-h-[260px] sm:min-h-[340px] lg:min-h-[380px] rounded-2xl overflow-hidden bg-surface-muted">
-          <Image
+        {/* Left (~60% = 7 cols on lg): Large cover image with subtle hover zoom */}
+        <div className="lg:col-span-7 relative w-full aspect-[16/10] sm:aspect-[16/9] lg:aspect-[16/10] min-h-[260px] sm:min-h-[340px] lg:min-h-[380px] rounded-none overflow-hidden bg-surface-muted">
+          <EditorialImage
             src={post.coverImage}
             alt={post.title}
             fill
             sizes="(max-width: 1024px) 100vw, 60vw"
             priority
-            className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+            className="group-hover:scale-[1.03] transition-transform duration-700 ease-out"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
         </div>
 
         {/* Right (~40% = 5 cols on lg): Editorial content */}
@@ -31,7 +30,7 @@ export function FeaturedPost({ post }: FeaturedPostProps) {
           <div>
             {/* Category badge & metadata */}
             <div className="flex items-center flex-wrap gap-2.5 mb-3.5">
-              <span className="font-mono text-xs uppercase tracking-wider px-3 py-1 rounded-full border border-border-subtle bg-surface-muted/80 text-content-primary font-medium">
+              <span className="font-mono text-xs uppercase tracking-wider px-2.5 py-0.5 rounded-none border border-neutral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-900 text-neutral-800 dark:text-neutral-200 font-medium">
                 {post.category}
               </span>
               <div className="flex items-center gap-1.5 font-mono text-xs text-content-muted">
@@ -66,13 +65,12 @@ export function FeaturedPost({ post }: FeaturedPostProps) {
           {/* Bottom Area: Author + Read More Pill Button */}
           <div className="pt-4 border-t border-border-subtle/80 flex items-center justify-between gap-4 mt-auto">
             <div className="flex items-center gap-3">
-              <div className="relative w-9 h-9 rounded-full overflow-hidden border border-border-subtle shrink-0">
-                <Image
+              <div className="relative w-9 h-9 rounded-none overflow-hidden border border-border-subtle shrink-0">
+                <EditorialImage
                   src={post.author.avatar}
                   alt={post.author.name}
                   fill
                   sizes="36px"
-                  className="object-cover"
                 />
               </div>
               <div className="flex flex-col">
@@ -85,10 +83,10 @@ export function FeaturedPost({ post }: FeaturedPostProps) {
               </div>
             </div>
 
-            {/* Solid Read More Pill Button (styled with Tailwind bg-accent text-accent-foreground) */}
+            {/* Solid Read More Button */}
             <Link
               href={`/posts/${post.slug}`}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs sm:text-sm font-semibold tracking-wide transition-all duration-200 active:scale-95 shadow-sm group-hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-accent bg-accent text-accent-foreground hover:opacity-90"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-none text-xs sm:text-sm font-semibold tracking-wide transition-all duration-200 active:scale-95 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-accent bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 hover:opacity-90"
             >
               <span>Read more</span>
               <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5" />

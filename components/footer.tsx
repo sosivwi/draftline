@@ -48,7 +48,7 @@ export function Footer() {
 
   return (
     <footer className="w-full bg-surface-upper text-content-primary border-t border-neutral-200 dark:border-neutral-800 transition-colors duration-200">
-      <div className="w-full max-w-7xl mx-auto px-6 md:px-10 py-14">
+      <div className="w-[90%] mx-auto py-14">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14">
           {/* Left Column (Brand + Micro-tagline + Description + Email Input) */}
           <div className="lg:col-span-6 flex flex-col justify-between">
