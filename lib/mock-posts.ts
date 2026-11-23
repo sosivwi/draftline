@@ -317,8 +317,20 @@ export const MOCK_POSTS: Post[] = [
   },
 ];
 
+export function getDailyFeaturedPost(posts: Post[] = MOCK_POSTS): Post {
+  if (!posts || posts.length === 0) return MOCK_POSTS[0];
+  const todayUtc = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
+  let hash = 0;
+  for (let i = 0; i < todayUtc.length; i++) {
+    hash = (hash << 5) - hash + todayUtc.charCodeAt(i);
+    hash |= 0;
+  }
+  const index = Math.abs(hash) % posts.length;
+  return posts[index];
+}
+
 export function getFeaturedPost(): Post {
-  return MOCK_POSTS.find((p) => p.featured) || MOCK_POSTS[0];
+  return getDailyFeaturedPost();
 }
 
 export function getGridPosts(): Post[] {

@@ -1,5 +1,5 @@
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
-import { MOCK_POSTS, Post, Category } from "@/lib/mock-posts";
+import { MOCK_POSTS, Post, Category, getDailyFeaturedPost } from "@/lib/mock-posts";
 
 function getPublicSupabase() {
   return createSupabaseClient(
@@ -96,7 +96,10 @@ export async function getLivePosts(): Promise<Post[]> {
 
     const livePosts = data.map(formatSupabasePost);
     if (livePosts.length > 0) {
-      livePosts[0].featured = true;
+      const dailyFeatured = getDailyFeaturedPost(livePosts);
+      livePosts.forEach((p) => {
+        p.featured = p.id === dailyFeatured.id;
+      });
     }
     return livePosts;
   } catch (err) {

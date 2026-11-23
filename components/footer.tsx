@@ -133,10 +133,18 @@ export function Footer() {
                 </li>
                 <li>
                   <Link
-                    href="/#articles"
+                    href="/articles"
                     className="text-neutral-600 hover:text-neutral-950 dark:text-neutral-400 dark:hover:text-white transition-colors"
                   >
                     Articles
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/topics"
+                    className="text-neutral-600 hover:text-neutral-950 dark:text-neutral-400 dark:hover:text-white transition-colors"
+                  >
+                    Topics
                   </Link>
                 </li>
                 <li>

@@ -133,8 +133,9 @@ export function Navbar() {
   };
 
   const navLinks = [
-    { href: "/", label: "Articles" },
-    { href: "/#topics", label: "Topics" },
+    { href: "/", label: "Home" },
+    { href: "/articles", label: "Articles" },
+    { href: "/topics", label: "Topics" },
     { href: "/about", label: "About" },
   ];
 

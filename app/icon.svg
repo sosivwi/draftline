@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80">
+  <style>
+    path { fill: #111111; }
+    @media (prefers-color-scheme: dark) {
+      path { fill: #ffffff; }
+    }
+  </style>
+  <path
+    fill-rule="evenodd"
+    clip-rule="evenodd"
+    d="M0 0H40C62.0914 0 80 17.9086 80 40C80 62.0914 62.0914 80 40 80H0V0ZM18 18H40C52.1503 18 62 27.8497 62 40C62 52.1503 52.1503 62 40 62C27.8497 62 18 52.1503 18 40V18Z"
+  />
+</svg>
