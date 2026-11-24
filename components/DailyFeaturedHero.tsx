@@ -34,10 +34,10 @@ export function DailyFeaturedHero({ post }: DailyFeaturedHeroProps) {
       </div>
 
       {/* 2. Large High-Contrast Editorial Headline */}
-      <TextReveal as="h1" delay={40} className="mb-6">
+      <TextReveal as="h1" delay={40} masked={false} className="mb-6 overflow-visible">
         <Link
           href={`/posts/${post.slug}`}
-          className="block font-sans font-extrabold text-3xl sm:text-5xl lg:text-6xl tracking-[-0.03em] leading-[1.08] text-neutral-950 dark:text-white hover:opacity-85 transition-opacity"
+          className="block font-sans font-extrabold text-3xl sm:text-5xl lg:text-6xl tracking-[-0.03em] leading-[1.15] sm:leading-[1.1] pb-1.5 overflow-visible text-neutral-950 dark:text-white hover:opacity-85 transition-opacity"
         >
           {post.title}
         </Link>

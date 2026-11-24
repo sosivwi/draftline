@@ -72,8 +72,8 @@ export default function AboutPage() {
           </div>
         </div>
 
-        <RevealText delay={0}>
-          <h1 className="font-sans font-extrabold text-3xl sm:text-5xl lg:text-6xl tracking-tight text-content-primary mb-6 leading-[1.08]">
+        <RevealText delay={0} masked={false} className="overflow-visible">
+          <h1 className="font-sans font-extrabold text-3xl sm:text-5xl lg:text-6xl tracking-tight text-content-primary mb-6 leading-[1.15] sm:leading-[1.1] pb-1.5 overflow-visible">
             About Draftline
           </h1>
         </RevealText>

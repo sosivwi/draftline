@@ -89,8 +89,8 @@ export function ArticlesPageClient({
               <Sparkles className="w-3.5 h-3.5" />
               <span>Complete Journal Archive</span>
             </div>
-            <TextReveal as="h1" delay={0}>
-              <span className="text-5xl md:text-6xl font-extrabold tracking-[-0.025em] leading-[1.15] text-neutral-950 dark:text-white">
+            <TextReveal as="h1" delay={0} masked={false} className="overflow-visible pb-1.5">
+              <span className="block text-5xl md:text-6xl font-extrabold tracking-[-0.025em] leading-[1.15] sm:leading-[1.1] text-neutral-950 dark:text-white overflow-visible">
                 Articles
               </span>
             </TextReveal>

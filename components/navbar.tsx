@@ -136,9 +136,12 @@ export function Navbar() {
     };
   }, [supabase, refreshProfile, pathname]);
 
-  // Handle navbar hide/reveal on scroll
+  // Handle navbar hide/reveal on scroll AND auto-close dropdown
   useEffect(() => {
     const handleScroll = () => {
+      // Immediately close user profile dropdown menu whenever page scrolls
+      setIsDropdownOpen(false);
+
       const currentScrollY = window.scrollY;
 
       if (currentScrollY <= 80) {
