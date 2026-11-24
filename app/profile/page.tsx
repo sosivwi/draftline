@@ -188,6 +188,26 @@ export default function ProfilePage() {
     loadProfile();
   }, [router, supabase]);
 
+  // Listen for instant rewards updates dispatched across Draftline
+  useEffect(() => {
+    const handleRewardsUpdated = (e: Event) => {
+      const customEvent = e as CustomEvent<{ streak?: number; coins?: number }>;
+      if (customEvent.detail) {
+        if (customEvent.detail.streak !== undefined) {
+          setStreakCount(customEvent.detail.streak);
+        }
+        if (customEvent.detail.coins !== undefined) {
+          setCoins(customEvent.detail.coins);
+        }
+      }
+    };
+
+    window.addEventListener("draftline:rewards-updated", handleRewardsUpdated);
+    return () => {
+      window.removeEventListener("draftline:rewards-updated", handleRewardsUpdated);
+    };
+  }, []);
+
   const handleAvatarFileChange = async (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -464,7 +484,39 @@ export default function ProfilePage() {
       }
 
       // Remove from local list immediately
-      setMyStories((prev) => prev.filter((s) => s.id !== deletingStory.id));
+      const remainingStories = myStories.filter((s) => s.id !== deletingStory.id);
+      setMyStories(remainingStories);
+
+      // Decrement user's Story Streak by 1 (minimum 0, matching active published story count) while keeping coins intact
+      const remainingPublishedCount = remainingStories.filter(
+        (s) => s.published !== false
+      ).length;
+      const newStreak = Math.max(0, Math.min(streakCount - 1, remainingPublishedCount));
+
+      // Update local state immediately so dashboard reflects the updated Story Streak
+      setStreakCount(newStreak);
+
+      // Persist updated Story Streak to Supabase
+      try {
+        await supabase
+          .from("profiles")
+          .update({
+            streak_count: newStreak,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", user.id);
+      } catch (profileErr) {
+        console.warn("Failed to persist updated streak to Supabase on delete:", profileErr);
+      }
+
+      // Dispatch 'draftline:rewards-updated' so navbar and other components reflect the updated Story Streak immediately without page refresh
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("draftline:rewards-updated", {
+            detail: { streak: newStreak, coins },
+          })
+        );
+      }
 
       setMessage({
         type: "success",
