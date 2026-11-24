@@ -28,9 +28,11 @@ import {
   FileText,
   Calendar,
   ChevronDown,
+  Bookmark,
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
-import { CATEGORIES, Category } from "@/lib/mock-posts";
+import { CATEGORIES, Category, Post } from "@/lib/mock-posts";
+import { getSavedPosts, toggleSavedPost } from "@/lib/saved-posts";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 export interface UserStory {
@@ -57,8 +59,12 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
-  // Tab state: "stories" or "profile"
-  const [activeTab, setActiveTab] = useState<"stories" | "profile">("stories");
+  // Tab state: "stories" | "saved" | "profile"
+  const [activeTab, setActiveTab] = useState<"stories" | "saved" | "profile">("stories");
+
+  // Saved Articles state
+  const [savedPosts, setSavedPosts] = useState<Post[]>([]);
+  const [savedLoading, setSavedLoading] = useState(true);
 
   // Profile fields
   const [fullName, setFullName] = useState("");
@@ -127,6 +133,30 @@ export default function ProfilePage() {
     }
   };
 
+  // Fetch saved articles for the user
+  const fetchUserSavedPosts = async (userId?: string | null) => {
+    setSavedLoading(true);
+    try {
+      const posts = await getSavedPosts(userId);
+      setSavedPosts(posts);
+    } catch (err) {
+      console.warn("Could not load saved articles:", err);
+      setSavedPosts([]);
+    } finally {
+      setSavedLoading(false);
+    }
+  };
+
+  // Remove article from saved collection
+  const handleRemoveSaved = async (slug: string) => {
+    try {
+      await toggleSavedPost(slug, user?.id);
+      setSavedPosts((prev) => prev.filter((p) => p.slug !== slug));
+    } catch (err) {
+      console.warn("Could not remove saved post:", err);
+    }
+  };
+
   useEffect(() => {
     async function loadProfile() {
       const {
@@ -181,8 +211,9 @@ export default function ProfilePage() {
 
       setLoading(false);
 
-      // Fetch user's stories
+      // Fetch user's stories & saved articles
       fetchUserStories(currentUser.id);
+      fetchUserSavedPosts(currentUser.id);
     }
 
     loadProfile();
@@ -207,6 +238,18 @@ export default function ProfilePage() {
       window.removeEventListener("draftline:rewards-updated", handleRewardsUpdated);
     };
   }, []);
+
+  // Listen for saved posts updates dispatched across Draftline
+  useEffect(() => {
+    const handleSavedUpdated = () => {
+      fetchUserSavedPosts(user?.id);
+    };
+
+    window.addEventListener("draftline:saved-posts-updated", handleSavedUpdated);
+    return () => {
+      window.removeEventListener("draftline:saved-posts-updated", handleSavedUpdated);
+    };
+  }, [user?.id]);
 
   const handleAvatarFileChange = async (
     e: React.ChangeEvent<HTMLInputElement>
@@ -629,12 +672,12 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Navigation Tabs: My Stories vs Profile Settings */}
-        <div className="flex items-center gap-6 mb-8 border-b border-border-subtle">
+        {/* Navigation Tabs: My Stories vs Saved Articles vs Profile Settings */}
+        <div className="flex items-center gap-6 mb-8 border-b border-border-subtle overflow-x-auto">
           <button
             type="button"
             onClick={() => setActiveTab("stories")}
-            className={`pb-3 text-sm font-semibold transition-colors relative border-b-2 ${
+            className={`pb-3 text-sm font-semibold transition-colors relative border-b-2 shrink-0 ${
               activeTab === "stories"
                 ? "text-content-primary border-content-primary font-bold"
                 : "text-content-muted hover:text-content-secondary border-transparent"
@@ -650,8 +693,26 @@ export default function ProfilePage() {
 
           <button
             type="button"
+            onClick={() => setActiveTab("saved")}
+            className={`pb-3 text-sm font-semibold transition-colors relative border-b-2 shrink-0 flex items-center gap-2 ${
+              activeTab === "saved"
+                ? "text-content-primary border-content-primary font-bold"
+                : "text-content-muted hover:text-content-secondary border-transparent"
+            }`}
+          >
+            <Bookmark className="w-3.5 h-3.5" />
+            <span>Saved Articles</span>
+            {!savedLoading && (
+              <span className="ml-1 text-xs font-mono px-2 py-0.5 rounded-none bg-neutral-200 dark:bg-neutral-800 text-content-secondary">
+                {savedPosts.length}
+              </span>
+            )}
+          </button>
+
+          <button
+            type="button"
             onClick={() => setActiveTab("profile")}
-            className={`pb-3 text-sm font-semibold transition-colors relative border-b-2 ${
+            className={`pb-3 text-sm font-semibold transition-colors relative border-b-2 shrink-0 ${
               activeTab === "profile"
                 ? "text-content-primary border-content-primary font-bold"
                 : "text-content-muted hover:text-content-secondary border-transparent"
@@ -833,7 +894,138 @@ export default function ProfilePage() {
         )}
 
         {/* =========================================================================
-            TAB 2: AUTHOR PROFILE FORM
+            TAB 2: SAVED ARTICLES COLLECTION SECTION
+            ========================================================================= */}
+        {activeTab === "saved" && (
+          <div className="space-y-6">
+            {/* Loading Skeletons */}
+            {savedLoading ? (
+              <div className="space-y-4">
+                {[1, 2, 3].map((idx) => (
+                  <div
+                    key={`saved-skel-${idx}`}
+                    className="p-5 bg-surface-card border border-border-subtle rounded-none flex flex-col sm:flex-row gap-5 animate-pulse"
+                  >
+                    <div className="w-full sm:w-36 h-24 bg-neutral-200 dark:bg-neutral-800 rounded-none shrink-0" />
+                    <div className="flex-1 space-y-3">
+                      <div className="w-24 h-4 bg-neutral-200 dark:bg-neutral-800 rounded-none" />
+                      <div className="w-3/4 h-5 bg-neutral-200 dark:bg-neutral-800 rounded-none" />
+                      <div className="w-1/2 h-3 bg-neutral-200 dark:bg-neutral-800 rounded-none" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : savedPosts.length === 0 ? (
+              /* Empty State */
+              <div className="p-12 sm:p-16 rounded-none border border-dashed border-neutral-300 dark:border-neutral-800 text-center bg-surface-card/40">
+                <div className="w-12 h-12 mx-auto mb-4 rounded-none bg-neutral-100 dark:bg-neutral-900 border border-border-subtle flex items-center justify-center text-content-muted">
+                  <Bookmark className="w-6 h-6" />
+                </div>
+                <h3 className="font-sans font-bold text-lg text-content-primary mb-1">
+                  No saved articles yet
+                </h3>
+                <p className="text-xs sm:text-sm text-content-secondary max-w-sm mx-auto mb-6 leading-relaxed">
+                  Bookmark stories you want to read later or revisit. Click the Save
+                  button on any article to add it here.
+                </p>
+                <Link
+                  href="/articles"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-none text-xs font-semibold bg-neutral-900 text-neutral-100 dark:bg-white dark:text-neutral-950 hover:opacity-90 transition-opacity"
+                >
+                  <BookOpen className="w-3.5 h-3.5" />
+                  <span>Explore Articles</span>
+                </Link>
+              </div>
+            ) : (
+              /* Saved Articles List */
+              <div className="space-y-4">
+                {savedPosts.map((post) => (
+                  <div
+                    key={post.slug}
+                    className="p-5 sm:p-6 bg-surface-card border border-border-subtle hover:border-neutral-400 dark:hover:border-neutral-700 transition-colors rounded-none flex flex-col md:flex-row md:items-center justify-between gap-5"
+                  >
+                    {/* Left: Thumbnail + Story Meta */}
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-5 flex-1 min-w-0">
+                      {/* Cover Thumbnail */}
+                      <div className="relative w-full sm:w-36 h-28 sm:h-24 bg-neutral-100 dark:bg-neutral-900 rounded-none overflow-hidden shrink-0 border border-border-subtle">
+                        <EditorialImage
+                          src={
+                            post.coverImage ||
+                            "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=600&q=80"
+                          }
+                          alt={post.title}
+                          fill
+                          sizes="144px"
+                          className="object-cover rounded-none"
+                        />
+                      </div>
+
+                      {/* Title, Category & Dates */}
+                      <div className="min-w-0 flex-1 space-y-1.5">
+                        <div className="flex items-center gap-2.5 flex-wrap">
+                          <span className="rounded-none text-[10px] font-medium uppercase tracking-wider px-2 py-0.5 bg-neutral-100 text-neutral-700 dark:bg-neutral-900 dark:text-neutral-400 border border-neutral-200 dark:border-neutral-800 select-none">
+                            {post.category || "General"}
+                          </span>
+
+                          <span className="inline-flex items-center gap-1 text-[11px] font-mono text-content-muted">
+                            <Calendar className="w-3 h-3" />
+                            {post.publishedAt}
+                          </span>
+
+                          <span className="text-content-muted text-xs">•</span>
+
+                          <span className="inline-flex items-center gap-1 text-[11px] font-mono text-content-muted">
+                            <Clock className="w-3 h-3" />
+                            {post.readTime}
+                          </span>
+                        </div>
+
+                        <Link
+                          href={`/posts/${post.slug}`}
+                          className="block group"
+                        >
+                          <h3 className="text-base sm:text-lg font-bold text-content-primary group-hover:text-neutral-600 dark:group-hover:text-neutral-300 transition-colors line-clamp-1">
+                            {post.title}
+                          </h3>
+                        </Link>
+
+                        {post.excerpt && (
+                          <p className="text-xs sm:text-sm text-content-secondary line-clamp-1">
+                            {post.excerpt}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Right: Actions */}
+                    <div className="flex items-center gap-2 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-border-subtle justify-end">
+                      <Link
+                        href={`/posts/${post.slug}`}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-none text-xs font-medium border border-border-subtle bg-surface-upper hover:bg-surface-muted text-content-secondary hover:text-content-primary transition-colors"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        <span>Read</span>
+                      </Link>
+
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveSaved(post.slug)}
+                        title="Remove from saved articles"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-none text-xs font-medium border border-border-subtle bg-surface-upper hover:bg-surface-muted text-content-secondary hover:text-red-500 hover:border-red-500/30 transition-colors"
+                      >
+                        <Bookmark className="w-3.5 h-3.5 fill-current" />
+                        <span>Remove</span>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* =========================================================================
+            TAB 3: AUTHOR PROFILE FORM
             ========================================================================= */}
         {activeTab === "profile" && (
           <form onSubmit={handleSave} className="space-y-6 max-w-3xl">

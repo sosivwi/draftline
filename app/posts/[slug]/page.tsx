@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, Calendar, Clock, Share2, Bookmark } from "lucide-react";
+import { ArrowLeft, Calendar, Clock } from "lucide-react";
 import { getLivePostBySlug, getLivePosts } from "@/lib/supabase-posts";
 import { ArticleCard } from "@/components/article-card";
 import { RevealText } from "@/components/RevealText";
 import { EditorialImage } from "@/components/editorial-image";
+import { ArticleActionButtons } from "@/components/article-action-buttons";
 
 interface PostPageProps {
   params: Promise<{ slug: string }>;
@@ -133,27 +134,29 @@ export default async function PostPage({ params }: PostPageProps) {
 
         {/* Category & Metadata */}
         <RevealText delay={0}>
-          <div className="flex items-center flex-wrap gap-3 mb-5">
-            <span className="font-mono text-xs uppercase tracking-wider px-3 py-1 rounded-full border border-border-subtle bg-surface-muted text-content-primary font-medium">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2 mb-5">
+            <span className="font-mono text-xs uppercase tracking-wider px-3 py-1 rounded-none border border-border-subtle bg-surface-muted text-content-primary font-medium">
               {post.category}
             </span>
-            <div className="flex items-center gap-1.5 font-mono text-xs text-content-muted">
-              <Calendar className="w-3.5 h-3.5" />
-              <span>{post.publishedAt}</span>
-            </div>
-            <span className="text-content-muted" aria-hidden="true">
-              •
-            </span>
-            <div className="flex items-center gap-1.5 font-mono text-xs text-content-muted">
-              <Clock className="w-3.5 h-3.5" />
-              <span>{post.readTime}</span>
+            <div className="flex items-center gap-2 font-mono text-xs text-content-muted">
+              <div className="flex items-center gap-1.5">
+                <Calendar className="w-3.5 h-3.5" />
+                <span>{post.publishedAt}</span>
+              </div>
+              <span className="text-content-muted select-none" aria-hidden="true">
+                •
+              </span>
+              <div className="flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5" />
+                <span>{post.readTime}</span>
+              </div>
             </div>
           </div>
         </RevealText>
 
         {/* Title */}
         <RevealText delay={80}>
-          <h1 className="w-full font-extrabold text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-content-primary leading-[1.15] tracking-[-0.025em]">
+          <h1 className="w-full font-extrabold text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-content-primary leading-[1.1] md:leading-[1.06] tracking-[-0.025em]">
             {post.title}
           </h1>
         </RevealText>
@@ -188,22 +191,13 @@ export default async function PostPage({ params }: PostPageProps) {
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border-subtle bg-surface-upper hover:bg-surface-muted text-xs font-medium text-content-secondary hover:text-content-primary transition-colors"
-              >
-                <Share2 className="w-3.5 h-3.5" />
-                <span>Share</span>
-              </button>
-              <button
-                type="button"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border-subtle bg-surface-upper hover:bg-surface-muted text-xs font-medium text-content-secondary hover:text-content-primary transition-colors"
-              >
-                <Bookmark className="w-3.5 h-3.5" />
-                <span>Save</span>
-              </button>
-            </div>
+            <ArticleActionButtons
+              post={{
+                slug: post.slug,
+                title: post.title,
+                excerpt: post.excerpt,
+              }}
+            />
           </div>
         </RevealText>
       </div>
