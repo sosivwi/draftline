@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { ThemeToggle } from "./theme-toggle";
-import { DraftlineLogo } from "./draftline-logo";
+import { BrandLogo } from "./brand-logo";
 import { createClient } from "@/utils/supabase/client";
 import {
   Flame,
@@ -181,17 +181,7 @@ export function Navbar() {
       <div className="w-[90%] mx-auto h-16 flex items-center justify-between">
         {/* Left: Brand Wordmark + DraftlineLogo */}
         <div className="flex items-center gap-6 lg:gap-8 shrink-0">
-          <Link
-            href="/"
-            className="flex items-center gap-2 md:gap-2.5 shrink-0 group focus:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-lg"
-          >
-            <div className="text-neutral-950 dark:text-white transition-transform duration-200 group-hover:scale-105 shrink-0">
-              <DraftlineLogo className="w-5 h-5 md:w-[18px] md:h-[18px] text-neutral-950 dark:text-white" />
-            </div>
-            <span className="text-base md:text-lg font-semibold tracking-tight whitespace-nowrap shrink-0 text-neutral-950 dark:text-white">
-              Draftline
-            </span>
-          </Link>
+          <BrandLogo size="md" href="/" />
 
           {/* Navigation Links */}
           <nav className="hidden md:flex items-center gap-1 sm:gap-2">

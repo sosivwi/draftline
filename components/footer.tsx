@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
-import { DraftlineLogo } from "./draftline-logo";
+import { BrandLogo } from "./brand-logo";
 import { NewsletterForm } from "./newsletter-form";
 
 export function Footer() {
@@ -16,15 +16,7 @@ export function Footer() {
           <div className="lg:col-span-6 flex flex-col justify-between">
             <div>
               {/* Brand Mark + Wordmark */}
-              <Link
-                href="/"
-                className="inline-flex items-center gap-2.5 text-neutral-950 dark:text-white group"
-              >
-                <DraftlineLogo className="w-8 h-8 text-neutral-950 dark:text-white transition-transform duration-200 group-hover:scale-105" />
-                <span className="text-xl sm:text-2xl font-bold tracking-tight text-neutral-950 dark:text-white">
-                  Draftline
-                </span>
-              </Link>
+              <BrandLogo size="lg" href="/" />
 
               {/* Micro-tagline */}
               <p className="font-mono text-[10px] sm:text-xs uppercase tracking-widest text-neutral-500 dark:text-neutral-400 font-semibold mt-3 mb-2">

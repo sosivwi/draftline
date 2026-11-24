@@ -159,11 +159,11 @@ export default function SignupPage() {
         </Link>
 
         {/* Card */}
-        <div className="rounded-3xl border border-border-subtle bg-surface-card p-6 sm:p-8 shadow-xl">
+        <div className="rounded-none border border-border-subtle bg-surface-card p-6 sm:p-8 shadow-sm">
           {/* Logo & Header */}
           <div className="flex flex-col items-center text-center mb-8">
-            <div className="w-12 h-12 rounded-2xl bg-surface-muted border border-border-strong flex items-center justify-center p-2 mb-4 text-content-primary">
-              <DraftlineLogo className="w-7 h-7 text-content-primary" />
+            <div className="w-10 h-10 rounded-none bg-surface-muted border border-border-strong flex items-center justify-center p-2 mb-4 text-content-primary">
+              <DraftlineLogo className="w-5 h-5 text-content-primary" />
             </div>
             <h1 className="font-sans font-bold text-2xl text-content-primary mb-1">
               Create an account
@@ -175,7 +175,7 @@ export default function SignupPage() {
 
           {/* Inline Error Message */}
           {error && (
-            <div className="mb-6 p-3.5 rounded-2xl border border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-400 text-xs flex items-center justify-between">
+            <div className="mb-6 p-3.5 rounded-none border border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-400 text-xs flex items-center justify-between">
               <span>{error}</span>
             </div>
           )}
@@ -216,7 +216,7 @@ export default function SignupPage() {
                   placeholder="Elena Rostova"
                   required
                   disabled={loading || googleLoading}
-                  className="w-full px-4 py-2.5 rounded-xl text-sm border border-border-subtle bg-surface-upper text-content-primary placeholder:text-content-muted focus:outline-none focus:ring-2 focus:ring-accent transition-all disabled:opacity-60"
+                  className="w-full h-11 px-4 rounded-none text-sm border border-border-subtle bg-surface-upper text-content-primary placeholder:text-content-muted focus:outline-none focus:border-neutral-900 dark:focus:border-white transition-colors disabled:opacity-60 box-border"
                 />
               </div>
 
@@ -235,7 +235,7 @@ export default function SignupPage() {
                   placeholder="name@example.com"
                   required
                   disabled={loading || googleLoading}
-                  className="w-full px-4 py-2.5 rounded-xl text-sm border border-border-subtle bg-surface-upper text-content-primary placeholder:text-content-muted focus:outline-none focus:ring-2 focus:ring-accent transition-all disabled:opacity-60"
+                  className="w-full h-11 px-4 rounded-none text-sm border border-border-subtle bg-surface-upper text-content-primary placeholder:text-content-muted focus:outline-none focus:border-neutral-900 dark:focus:border-white transition-colors disabled:opacity-60 box-border"
                 />
               </div>
 
@@ -256,7 +256,7 @@ export default function SignupPage() {
                     placeholder="Create a strong password"
                     required
                     disabled={loading || googleLoading}
-                    className="w-full pl-4 pr-11 py-2.5 rounded-xl text-sm border border-border-subtle bg-surface-upper text-content-primary placeholder:text-content-muted focus:outline-none focus:ring-2 focus:ring-accent transition-all disabled:opacity-60"
+                    className="w-full h-11 pl-4 pr-11 rounded-none text-sm border border-border-subtle bg-surface-upper text-content-primary placeholder:text-content-muted focus:outline-none focus:border-neutral-900 dark:focus:border-white transition-colors disabled:opacity-60 box-border"
                   />
                   <button
                     type="button"
@@ -331,10 +331,10 @@ export default function SignupPage() {
                     placeholder="Re-enter your password"
                     required
                     disabled={loading || googleLoading}
-                    className={`w-full pl-4 pr-11 py-2.5 rounded-xl text-sm border bg-surface-upper text-content-primary placeholder:text-content-muted focus:outline-none focus:ring-2 transition-all disabled:opacity-60 ${
+                    className={`w-full h-11 pl-4 pr-11 rounded-none text-sm border bg-surface-upper text-content-primary placeholder:text-content-muted focus:outline-none transition-colors disabled:opacity-60 box-border ${
                       confirmPassword.length > 0 && !passwordsMatch
-                        ? "border-red-500/50 focus:ring-red-500"
-                        : "border-border-subtle focus:ring-accent"
+                        ? "border-red-500/50 focus:border-red-500"
+                        : "border-border-subtle focus:border-neutral-900 dark:focus:border-white"
                     }`}
                   />
                   <button
@@ -358,7 +358,7 @@ export default function SignupPage() {
               <button
                 type="submit"
                 disabled={loading || googleLoading || !isFormValid}
-                className="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-all active:scale-[0.98] shadow-sm bg-accent text-accent-foreground hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full h-11 inline-flex items-center justify-center gap-2 px-5 rounded-none text-sm font-semibold transition-all active:scale-[0.99] shadow-sm bg-neutral-900 text-neutral-100 dark:bg-white dark:text-neutral-950 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed box-border"
               >
                 {loading ? (
                   <>
@@ -388,7 +388,7 @@ export default function SignupPage() {
                 type="button"
                 onClick={handleGoogleSignIn}
                 disabled={loading || googleLoading}
-                className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-medium border border-border-subtle bg-surface-upper hover:bg-surface-muted text-content-primary transition-colors disabled:opacity-60"
+                className="w-full h-11 inline-flex items-center justify-center gap-2 px-4 rounded-none text-xs sm:text-sm font-medium border border-border-subtle bg-surface-upper hover:bg-surface-muted text-content-primary transition-colors disabled:opacity-60 box-border"
               >
                 {googleLoading ? (
                   <Loader2 className="w-4 h-4 animate-spin" />

@@ -152,8 +152,8 @@ export function HomepagePreloader() {
     >
       <div className="flex flex-col items-center max-w-sm px-6 text-center">
         {/* Editorial Brand Mark */}
-        <div className="mb-6 text-neutral-950 dark:text-white transition-transform duration-500 ease-out scale-100">
-          <DraftlineLogo className="w-12 h-12 text-neutral-950 dark:text-white animate-pulse" />
+        <div className="mb-4 text-neutral-950 dark:text-white transition-transform duration-500 ease-out scale-100">
+          <DraftlineLogo className="w-7 h-7 sm:w-8 sm:h-8 text-neutral-950 dark:text-white animate-pulse" />
         </div>
 
         {/* Wordmark */}

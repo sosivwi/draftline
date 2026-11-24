@@ -36,3 +36,7 @@ export function DraftlineLogo({
     </svg>
   );
 }
+
+// Re-export high-level BrandLogo for convenience
+export { BrandLogo } from "./brand-logo";
+export type { BrandLogoProps, BrandLogoSize, BrandLogoLayout } from "./brand-logo";
