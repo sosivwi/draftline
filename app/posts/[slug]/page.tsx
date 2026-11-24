@@ -155,8 +155,8 @@ export default async function PostPage({ params }: PostPageProps) {
         </RevealText>
 
         {/* Title */}
-        <RevealText delay={80}>
-          <h1 className="w-full font-extrabold text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-content-primary leading-[1.1] md:leading-[1.06] tracking-[-0.025em]">
+        <RevealText delay={80} masked={false} className="overflow-visible">
+          <h1 className="w-full font-extrabold text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-content-primary leading-[1.15] sm:leading-[1.1] tracking-[-0.025em] pb-1.5 overflow-visible">
             {post.title}
           </h1>
         </RevealText>

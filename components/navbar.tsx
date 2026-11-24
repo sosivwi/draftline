@@ -185,7 +185,7 @@ export function Navbar() {
             className="flex items-center gap-2 md:gap-2.5 shrink-0 group focus:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-lg"
           >
             <div className="text-neutral-950 dark:text-white transition-transform duration-200 group-hover:scale-105 shrink-0">
-              <DraftlineLogo className="w-5 h-5 md:w-6 md:h-6 text-neutral-950 dark:text-white" />
+              <DraftlineLogo className="w-5 h-5 md:w-[18px] md:h-[18px] text-neutral-950 dark:text-white" />
             </div>
             <span className="text-base md:text-lg font-semibold tracking-tight whitespace-nowrap shrink-0 text-neutral-950 dark:text-white">
               Draftline
