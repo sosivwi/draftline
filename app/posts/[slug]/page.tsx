@@ -8,6 +8,7 @@ import { ArticleCard } from "@/components/article-card";
 import { RevealText } from "@/components/RevealText";
 import { EditorialImage } from "@/components/editorial-image";
 import { ArticleActionButtons } from "@/components/article-action-buttons";
+import { NewsletterForm } from "@/components/newsletter-form";
 
 interface PostPageProps {
   params: Promise<{ slug: string }>;
@@ -273,6 +274,26 @@ export default async function PostPage({ params }: PostPageProps) {
           </RevealText>
         </div>
       </div>
+
+      {/* Editorial Sunday Dispatch Newsletter Box (Article Bottom) */}
+      <section className="w-[90%] mx-auto pb-16">
+        <div className="p-8 sm:p-10 rounded-none border border-neutral-200 dark:border-neutral-800 bg-surface-card flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="max-w-md">
+            <span className="font-mono text-[10px] uppercase tracking-widest text-neutral-500 font-semibold block mb-1.5">
+              THE DRAFTLINE DISPATCH
+            </span>
+            <h3 className="font-sans font-bold text-xl sm:text-2xl text-content-primary tracking-tight mb-2">
+              Receive our weekly Sunday dispatch
+            </h3>
+            <p className="text-xs sm:text-sm text-content-secondary leading-relaxed">
+              Curated perspectives on travel places, modern architecture, and intentional living.
+            </p>
+          </div>
+          <div className="w-full md:w-auto min-w-[320px]">
+            <NewsletterForm />
+          </div>
+        </div>
+      </section>
 
       {/* Related Stories Band (Surface Lower) */}
       <section className="border-t border-border-subtle bg-surface-lower py-16">

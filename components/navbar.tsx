@@ -14,6 +14,7 @@ import {
   User,
   LogOut,
   ChevronDown,
+  Bookmark,
 } from "lucide-react";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 
@@ -307,6 +308,15 @@ export function Navbar() {
                     >
                       <User className="w-3.5 h-3.5" />
                       <span>Edit Profile</span>
+                    </Link>
+
+                    <Link
+                      href="/profile?tab=saved"
+                      onClick={() => setIsDropdownOpen(false)}
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-content-secondary hover:text-content-primary hover:bg-surface-muted transition-colors"
+                    >
+                      <Bookmark className="w-3.5 h-3.5" />
+                      <span>Saved Articles</span>
                     </Link>
 
                     <Link

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { EditorialImage } from "@/components/editorial-image";
@@ -50,8 +50,10 @@ export interface UserStory {
   updated_at?: string;
 }
 
-export default function ProfilePage() {
+function ProfileContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get("tab");
   const supabase = createClient();
 
   const [user, setUser] = useState<SupabaseUser | null>(null);
@@ -60,7 +62,22 @@ export default function ProfilePage() {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   // Tab state: "stories" | "saved" | "profile"
-  const [activeTab, setActiveTab] = useState<"stories" | "saved" | "profile">("stories");
+  const [activeTab, setActiveTab] = useState<"stories" | "saved" | "profile">(() => {
+    if (tabParam === "saved") return "saved";
+    if (tabParam === "profile") return "profile";
+    return "stories";
+  });
+
+  // Keep activeTab in sync with URL search parameter
+  useEffect(() => {
+    if (tabParam === "saved") {
+      setActiveTab("saved");
+    } else if (tabParam === "profile") {
+      setActiveTab("profile");
+    } else if (tabParam === "stories") {
+      setActiveTab("stories");
+    }
+  }, [tabParam]);
 
   // Saved Articles state
   const [savedPosts, setSavedPosts] = useState<Post[]>([]);
@@ -676,7 +693,12 @@ export default function ProfilePage() {
         <div className="flex items-center gap-6 mb-8 border-b border-border-subtle overflow-x-auto">
           <button
             type="button"
-            onClick={() => setActiveTab("stories")}
+            onClick={() => {
+              setActiveTab("stories");
+              if (typeof window !== "undefined") {
+                window.history.replaceState(null, "", "/profile");
+              }
+            }}
             className={`pb-3 text-sm font-semibold transition-colors relative border-b-2 shrink-0 ${
               activeTab === "stories"
                 ? "text-content-primary border-content-primary font-bold"
@@ -685,7 +707,7 @@ export default function ProfilePage() {
           >
             <span>My Stories</span>
             {!storiesLoading && (
-              <span className="ml-2 text-xs font-mono px-2 py-0.5 rounded-none bg-neutral-200 dark:bg-neutral-800 text-content-secondary">
+              <span className="ml-2 text-xs font-mono px-2 py-0.5 rounded-none bg-neutral-200 dark:bg-neutral-800 text-content-secondary font-medium">
                 {myStories.length}
               </span>
             )}
@@ -693,7 +715,12 @@ export default function ProfilePage() {
 
           <button
             type="button"
-            onClick={() => setActiveTab("saved")}
+            onClick={() => {
+              setActiveTab("saved");
+              if (typeof window !== "undefined") {
+                window.history.replaceState(null, "", "/profile?tab=saved");
+              }
+            }}
             className={`pb-3 text-sm font-semibold transition-colors relative border-b-2 shrink-0 flex items-center gap-2 ${
               activeTab === "saved"
                 ? "text-content-primary border-content-primary font-bold"
@@ -703,15 +730,20 @@ export default function ProfilePage() {
             <Bookmark className="w-3.5 h-3.5" />
             <span>Saved Articles</span>
             {!savedLoading && (
-              <span className="ml-1 text-xs font-mono px-2 py-0.5 rounded-none bg-neutral-200 dark:bg-neutral-800 text-content-secondary">
-                {savedPosts.length}
+              <span className="ml-1 text-xs font-mono px-2 py-0.5 rounded-none bg-neutral-200 dark:bg-neutral-800 text-content-secondary font-medium">
+                ({savedPosts.length})
               </span>
             )}
           </button>
 
           <button
             type="button"
-            onClick={() => setActiveTab("profile")}
+            onClick={() => {
+              setActiveTab("profile");
+              if (typeof window !== "undefined") {
+                window.history.replaceState(null, "", "/profile?tab=profile");
+              }
+            }}
             className={`pb-3 text-sm font-semibold transition-colors relative border-b-2 shrink-0 ${
               activeTab === "profile"
                 ? "text-content-primary border-content-primary font-bold"
@@ -1470,5 +1502,22 @@ export default function ProfilePage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function ProfilePage() {
+  return (
+    <React.Suspense
+      fallback={
+        <div className="min-h-[60vh] flex flex-col items-center justify-center gap-3">
+          <Loader2 className="w-6 h-6 animate-spin text-content-primary" />
+          <p className="font-mono text-xs text-content-secondary">
+            Loading author profile...
+          </p>
+        </div>
+      }
+    >
+      <ProfileContent />
+    </React.Suspense>
   );
 }
