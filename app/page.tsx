@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getLivePosts, deduplicatePosts } from "@/lib/supabase-posts";
 import { HomePageClient } from "@/components/home-page-client";
 import { ensureDailyStoriesForToday } from "@/lib/daily-stories";
+import { HomepagePreloader } from "@/components/HomepagePreloader";
 
 export const dynamic = "force-dynamic";
 
@@ -43,5 +44,10 @@ export default async function HomePage() {
   await ensureDailyStoriesForToday();
   const allPosts = deduplicatePosts(await getLivePosts());
 
-  return <HomePageClient allPosts={allPosts} />;
+  return (
+    <>
+      <HomepagePreloader />
+      <HomePageClient allPosts={allPosts} />
+    </>
+  );
 }
