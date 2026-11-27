@@ -18,9 +18,10 @@ export function HomePageClient({ allPosts }: HomePageClientProps) {
     return allPosts[0] || null;
   }, [allPosts]);
 
-  // Curated secondary stories immediately following the featured story
+  // Render posts.slice(1) in the homepage grid below the Hero Featured Story (posts[0])
+  // so the top story does not repeat twice on the homepage
   const secondaryPosts = useMemo(() => {
-    return allPosts.slice(1, 7);
+    return allPosts.slice(1);
   }, [allPosts]);
 
   return (

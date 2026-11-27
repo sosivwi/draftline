@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getLivePosts } from "@/lib/supabase-posts";
+import { getLivePosts, deduplicatePosts } from "@/lib/supabase-posts";
 import { HomePageClient } from "@/components/home-page-client";
 import { ensureDailyStoriesForToday } from "@/lib/daily-stories";
 
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
 
 export default async function HomePage() {
   await ensureDailyStoriesForToday();
-  const allPosts = await getLivePosts();
+  const allPosts = deduplicatePosts(await getLivePosts());
 
   return <HomePageClient allPosts={allPosts} />;
 }

@@ -33,8 +33,8 @@ export function ArticleCard({ post }: ArticleCardProps) {
             {post.title}
           </h3>
 
-          {/* 1-line Excerpt */}
-          <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400 line-clamp-1 leading-relaxed">
+          {/* 2-line Excerpt */}
+          <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400 line-clamp-2 leading-relaxed">
             {post.excerpt}
           </p>
 

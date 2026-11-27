@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getLivePosts } from "@/lib/supabase-posts";
+import { getLivePosts, deduplicatePosts } from "@/lib/supabase-posts";
 import { ArticlesPageClient } from "@/components/articles-page-client";
 import { ensureDailyStoriesForToday } from "@/lib/daily-stories";
 
@@ -34,7 +34,7 @@ interface ArticlesPageProps {
 
 export default async function ArticlesPage({ searchParams }: ArticlesPageProps) {
   await ensureDailyStoriesForToday();
-  const allPosts = await getLivePosts();
+  const allPosts = deduplicatePosts(await getLivePosts());
   const resolvedParams = searchParams ? await searchParams : undefined;
   const initialCategory = resolvedParams?.category || "All";
 
