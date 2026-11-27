@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getLivePosts } from "@/lib/supabase-posts";
 import { HomePageClient } from "@/components/home-page-client";
+import { ensureDailyStoriesForToday } from "@/lib/daily-stories";
 
 export const dynamic = "force-dynamic";
 
@@ -39,6 +40,7 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
+  await ensureDailyStoriesForToday();
   const allPosts = await getLivePosts();
 
   return <HomePageClient allPosts={allPosts} />;

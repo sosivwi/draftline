@@ -3,9 +3,12 @@ import {
   MOCK_POSTS,
   Post,
   Category,
-  getDailyFeaturedPost,
   isCategoryMatch,
 } from "@/lib/mock-posts";
+import {
+  getInMemoryDailyPosts,
+  getInMemoryDailyPostBySlug,
+} from "@/lib/daily-stories";
 
 function getPublicSupabase() {
   return createSupabaseClient(
@@ -35,6 +38,7 @@ export interface SupabasePostRow {
   cover_image_url?: string | null;
   read_time_minutes?: number | null;
   published?: boolean | null;
+  published_at?: string;
   created_at?: string;
   updated_at?: string;
   profiles?: SupabaseProfileRow | SupabaseProfileRow[] | null;
@@ -55,7 +59,8 @@ export function formatSupabasePost(row: SupabasePostRow): Post {
     contentParagraphs = [row.excerpt || "No content provided."];
   }
 
-  const dateObj = row.created_at ? new Date(row.created_at) : new Date();
+  const rawDate = row.published_at || row.created_at;
+  const dateObj = rawDate ? new Date(rawDate) : new Date();
   const formattedDate = dateObj.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
@@ -90,35 +95,71 @@ export function formatSupabasePost(row: SupabasePostRow): Post {
 export async function getLivePosts(): Promise<Post[]> {
   try {
     const supabase = getPublicSupabase();
-    const { data, error } = await supabase
+    // Strict newest-first query: order by published_at descending, falling back to created_at descending
+    let data: SupabasePostRow[] | null = null;
+    const initialRes = await supabase
       .from("posts")
       .select("*, profiles(*)")
       .eq("published", true)
-      .order("created_at", { ascending: false });
+      .order("published_at", { ascending: false });
 
-    if (error || !data || data.length === 0) {
-      return MOCK_POSTS;
+    if (initialRes.error) {
+      // Fallback to created_at descending if published_at column does not exist
+      const fallbackRes = await supabase
+        .from("posts")
+        .select("*, profiles(*)")
+        .eq("published", true)
+        .order("created_at", { ascending: false });
+      data = fallbackRes.data as SupabasePostRow[] | null;
+    } else {
+      data = initialRes.data as SupabasePostRow[] | null;
     }
 
-    const livePosts = data.map(formatSupabasePost);
-    // Combine fresh Supabase stories (at the top) with non-colliding editorial archive
+    const livePosts = data ? data.map(formatSupabasePost) : [];
+
+    // Fresh in-memory daily stories (generated today)
+    const inMemoryDaily = getInMemoryDailyPosts();
     const existingSlugs = new Set(livePosts.map((p) => p.slug.toLowerCase()));
     const existingIds = new Set(livePosts.map((p) => p.id));
+
+    // Prepend any in-memory daily posts not already in Supabase
+    const uniqueDaily = inMemoryDaily.filter(
+      (d) => !existingSlugs.has(d.slug.toLowerCase()) && !existingIds.has(d.id)
+    );
+    uniqueDaily.forEach((d) => {
+      existingSlugs.add(d.slug.toLowerCase());
+      existingIds.add(d.id);
+    });
+
+    const activeLivePosts = [...uniqueDaily, ...livePosts];
+
+    // Combine fresh live stories (strictly at the top) with non-colliding editorial archive at the bottom
     const supplementalMocks = MOCK_POSTS.filter(
       (m) => !existingSlugs.has(m.slug.toLowerCase()) && !existingIds.has(m.id)
     );
-    const combinedPosts = [...livePosts, ...supplementalMocks];
+    const combinedPosts = [...activeLivePosts, ...supplementalMocks];
 
     if (combinedPosts.length > 0) {
-      const dailyFeatured = getDailyFeaturedPost(combinedPosts);
-      combinedPosts.forEach((p) => {
-        p.featured = p.id === dailyFeatured.id;
+      // Pin the newest story at the very top of the stack as the featured hero
+      combinedPosts.forEach((p, idx) => {
+        p.featured = idx === 0;
       });
     }
     return combinedPosts;
   } catch (err) {
     console.error("Error fetching live posts from Supabase:", err);
-    return MOCK_POSTS;
+    const inMemory = getInMemoryDailyPosts();
+    const existingSlugs = new Set(inMemory.map((p) => p.slug.toLowerCase()));
+    const fallback = [
+      ...inMemory,
+      ...MOCK_POSTS.filter((m) => !existingSlugs.has(m.slug.toLowerCase())),
+    ];
+    if (fallback.length > 0) {
+      fallback.forEach((p, idx) => {
+        p.featured = idx === 0;
+      });
+    }
+    return fallback;
   }
 }
 
@@ -142,6 +183,10 @@ export async function getLivePostBySlug(slug: string): Promise<Post | null> {
   } catch (err) {
     console.error(`Error fetching post by slug ${slug}:`, err);
   }
+
+  // Check in-memory daily posts
+  const dailyMatch = getInMemoryDailyPostBySlug(slug);
+  if (dailyMatch) return dailyMatch;
 
   // Graceful fallback to mock posts
   const mock = MOCK_POSTS.find((p) => p.slug === slug);

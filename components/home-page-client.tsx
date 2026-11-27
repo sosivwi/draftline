@@ -3,7 +3,7 @@
 import React, { useMemo } from "react";
 import Link from "next/link";
 import { ArrowRight, Compass, Sparkles } from "lucide-react";
-import { Post, getDailyFeaturedPost } from "@/lib/mock-posts";
+import { Post } from "@/lib/mock-posts";
 import { ArticleCard } from "./article-card";
 import { DailyFeaturedHero } from "./DailyFeaturedHero";
 import { TextReveal } from "./TextReveal";
@@ -13,15 +13,15 @@ interface HomePageClientProps {
 }
 
 export function HomePageClient({ allPosts }: HomePageClientProps) {
-  // Select daily auto-rotating featured post
+  // Newest story at the very top of the stack is the Hero Featured Story
   const featuredPost = useMemo(() => {
-    return allPosts.find((p) => p.featured) || getDailyFeaturedPost(allPosts);
+    return allPosts[0] || null;
   }, [allPosts]);
 
-  // Curated secondary stories (excluding the featured story)
+  // Curated secondary stories immediately following the featured story
   const secondaryPosts = useMemo(() => {
-    return allPosts.filter((p) => p.id !== featuredPost?.id).slice(0, 6);
-  }, [allPosts, featuredPost]);
+    return allPosts.slice(1, 7);
+  }, [allPosts]);
 
   return (
     <div className="w-full text-content-primary">
