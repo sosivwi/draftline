@@ -1,6 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  rewrites: async () => [
+    {
+      source: "/signin",
+      destination: "/login",
+    },
+  ],
   images: {
     unoptimized: true,
     remotePatterns: [

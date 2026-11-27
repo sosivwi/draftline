@@ -53,6 +53,27 @@ export default function SignupPage() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [nextParam, setNextParam] = useState("");
+
+  const getReturnUrl = () => {
+    if (typeof window === "undefined") return "/";
+    const params = new URLSearchParams(window.location.search);
+    const rawNext = params.get("next");
+    if (rawNext && rawNext.startsWith("/") && !rawNext.startsWith("//")) {
+      return rawNext;
+    }
+    return "/";
+  };
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const rawNext = params.get("next");
+      if (rawNext && rawNext.startsWith("/") && !rawNext.startsWith("//")) {
+        setNextParam(rawNext);
+      }
+    }
+  }, []);
 
   // Live password validation checklist
   const passwordRules = [
@@ -89,6 +110,12 @@ export default function SignupPage() {
     setLoading(true);
 
     try {
+      const returnUrl = getReturnUrl();
+      const callbackUrl = new URL("/auth/callback", window.location.origin);
+      if (returnUrl && returnUrl !== "/") {
+        callbackUrl.searchParams.set("next", returnUrl);
+      }
+
       const { data, error: authError } = await supabase.auth.signUp({
         email,
         password,
@@ -96,7 +123,7 @@ export default function SignupPage() {
           data: {
             full_name: fullName.trim(),
           },
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: callbackUrl.toString(),
         },
       });
 
@@ -108,7 +135,7 @@ export default function SignupPage() {
 
       // If session is immediately returned (no email confirmation needed)
       if (data.session) {
-        router.push("/");
+        router.push(returnUrl);
         router.refresh();
         return;
       }
@@ -129,10 +156,16 @@ export default function SignupPage() {
     setGoogleLoading(true);
 
     try {
+      const returnUrl = getReturnUrl();
+      const callbackUrl = new URL("/auth/callback", window.location.origin);
+      if (returnUrl && returnUrl !== "/") {
+        callbackUrl.searchParams.set("next", returnUrl);
+      }
+
       const { error: authError } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: callbackUrl.toString(),
         },
       });
 
@@ -151,11 +184,11 @@ export default function SignupPage() {
       <div className="w-full max-w-md">
         {/* Back Link */}
         <Link
-          href="/"
+          href={nextParam || "/"}
           className="inline-flex items-center gap-2 text-xs font-mono text-content-secondary hover:text-content-primary transition-colors mb-6 group"
         >
           <ArrowLeft className="w-4 h-4 transition-transform duration-200 group-hover:-translate-x-1" />
-          <span>Back to home</span>
+          <span>{nextParam ? "Back to story" : "Back to home"}</span>
         </Link>
 
         {/* Card */}
@@ -405,7 +438,7 @@ export default function SignupPage() {
             <p className="font-sans text-xs text-content-secondary">
               Already have an account?{" "}
               <Link
-                href="/login"
+                href={nextParam ? `/login?next=${encodeURIComponent(nextParam)}` : "/login"}
                 className="font-semibold text-content-primary hover:underline"
               >
                 Sign in

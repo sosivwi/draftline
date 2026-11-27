@@ -15,9 +15,11 @@ export async function GET(request: Request) {
     ? `${forwardedProto}://${forwardedHost}`
     : requestUrl.origin;
 
+  const nextQuery = next !== "/" ? `&next=${encodeURIComponent(next)}` : "";
+
   if (errorDescription) {
     return NextResponse.redirect(
-      `${baseOrigin}/login?error=${encodeURIComponent(errorDescription)}`
+      `${baseOrigin}/login?error=${encodeURIComponent(errorDescription)}${nextQuery}`
     );
   }
 
@@ -28,12 +30,12 @@ export async function GET(request: Request) {
       return NextResponse.redirect(`${baseOrigin}${next}`);
     } else {
       return NextResponse.redirect(
-        `${baseOrigin}/login?error=${encodeURIComponent(error.message)}`
+        `${baseOrigin}/login?error=${encodeURIComponent(error.message)}${nextQuery}`
       );
     }
   }
 
   return NextResponse.redirect(
-    `${baseOrigin}/login?error=Could%20not%20authenticate%20user`
+    `${baseOrigin}/login?error=Could%20not%20authenticate%20user${nextQuery}`
   );
 }

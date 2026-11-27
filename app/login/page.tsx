@@ -40,6 +40,17 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [nextParam, setNextParam] = useState("");
+
+  const getReturnUrl = () => {
+    if (typeof window === "undefined") return "/";
+    const params = new URLSearchParams(window.location.search);
+    const rawNext = params.get("next");
+    if (rawNext && rawNext.startsWith("/") && !rawNext.startsWith("//")) {
+      return rawNext;
+    }
+    return "/";
+  };
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -47,6 +58,10 @@ export default function LoginPage() {
       const urlError = params.get("error");
       if (urlError) {
         setError(urlError);
+      }
+      const rawNext = params.get("next");
+      if (rawNext && rawNext.startsWith("/") && !rawNext.startsWith("//")) {
+        setNextParam(rawNext);
       }
     }
   }, []);
@@ -68,7 +83,8 @@ export default function LoginPage() {
         return;
       }
 
-      router.push("/");
+      const returnUrl = getReturnUrl();
+      router.push(returnUrl);
       router.refresh();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "An unexpected error occurred");
@@ -81,10 +97,16 @@ export default function LoginPage() {
     setGoogleLoading(true);
 
     try {
+      const returnUrl = getReturnUrl();
+      const callbackUrl = new URL("/auth/callback", window.location.origin);
+      if (returnUrl && returnUrl !== "/") {
+        callbackUrl.searchParams.set("next", returnUrl);
+      }
+
       const { error: authError } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: callbackUrl.toString(),
         },
       });
 
@@ -103,11 +125,11 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         {/* Back Link */}
         <Link
-          href="/"
+          href={nextParam || "/"}
           className="inline-flex items-center gap-2 text-xs font-mono text-content-secondary hover:text-content-primary transition-colors mb-6 group"
         >
           <ArrowLeft className="w-4 h-4 transition-transform duration-200 group-hover:-translate-x-1" />
-          <span>Back to home</span>
+          <span>{nextParam ? "Back to story" : "Back to home"}</span>
         </Link>
 
         {/* Card */}
@@ -234,7 +256,7 @@ export default function LoginPage() {
             <p className="font-sans text-xs text-content-secondary">
               Don&apos;t have an account?{" "}
               <Link
-                href="/signup"
+                href={nextParam ? `/signup?next=${encodeURIComponent(nextParam)}` : "/signup"}
                 className="font-semibold text-content-primary hover:underline"
               >
                 Sign up
