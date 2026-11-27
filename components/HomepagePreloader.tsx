@@ -13,9 +13,36 @@ export function HomepagePreloader() {
   const hasFinishedRef = useRef(false);
 
   useEffect(() => {
+    // Helper to restore normal scrolling on both html and body
+    const restoreScroll = () => {
+      document.documentElement.style.overflow = "";
+      document.documentElement.style.touchAction = "";
+      document.documentElement.style.overscrollBehavior = "";
+      document.body.style.overflow = "";
+      document.body.style.touchAction = "";
+      document.body.style.overscrollBehavior = "";
+      if (window.__lenis) {
+        window.__lenis.start();
+      }
+    };
+
+    // Helper to lock scrolling on both html and body
+    const lockScroll = () => {
+      document.documentElement.style.overflow = "hidden";
+      document.documentElement.style.touchAction = "none";
+      document.documentElement.style.overscrollBehavior = "none";
+      document.body.style.overflow = "hidden";
+      document.body.style.touchAction = "none";
+      document.body.style.overscrollBehavior = "none";
+      if (window.__lenis) {
+        window.__lenis.stop();
+      }
+    };
+
     // Exclusively run on the homepage root route "/"
     if (pathname !== "/") {
       setIsActive(false);
+      restoreScroll();
       return;
     }
 
@@ -24,6 +51,7 @@ export function HomepagePreloader() {
       const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
       if (mediaQuery.matches) {
         setIsActive(false);
+        restoreScroll();
         return;
       }
 
@@ -31,6 +59,7 @@ export function HomepagePreloader() {
       try {
         if (sessionStorage.getItem("draftline_preloaded") === "true") {
           setIsActive(false);
+          restoreScroll();
           return;
         }
       } catch {
@@ -38,19 +67,8 @@ export function HomepagePreloader() {
       }
     }
 
-    // Strictly lock scrolling on html and body + Lenis
-    const originalHtmlOverflow = document.documentElement.style.overflow;
-    const originalBodyOverflow = document.body.style.overflow;
-    const originalBodyTouchAction = document.body.style.touchAction;
-
-    document.documentElement.style.overflow = "hidden";
-    document.body.style.overflow = "hidden";
-    document.body.style.touchAction = "none";
-
-    // Stop Lenis smooth scroll while preloader is active
-    if (window.__lenis) {
-      window.__lenis.stop();
-    }
+    // While preloader is active/loading, lock scrolling on both document.documentElement and document.body
+    lockScroll();
 
     // Wheel/touch event blocker for absolute lock
     const preventScroll = (e: Event) => {
@@ -70,30 +88,27 @@ export function HomepagePreloader() {
       }
     });
 
-    const unlockScroll = () => {
+    let exitTimeout: NodeJS.Timeout | null = null;
+
+    const finishPreloader = () => {
       if (hasFinishedRef.current) return;
       hasFinishedRef.current = true;
 
-      document.documentElement.style.overflow = originalHtmlOverflow;
-      document.body.style.overflow = originalBodyOverflow;
-      document.body.style.touchAction = originalBodyTouchAction;
-
-      if (window.__lenis) {
-        window.__lenis.start();
-      }
-
-      window.removeEventListener("wheel", preventScroll);
-      window.removeEventListener("touchmove", preventScroll);
-
-      try {
-        sessionStorage.setItem("draftline_preloaded", "true");
-      } catch {
-        // Ignore storage error
-      }
-
-      // Trigger smooth opacity & transform exit
+      // 1. Trigger smooth opacity & transform exit (scrolling remains locked throughout exit transition)
       setIsExiting(true);
-      setTimeout(() => {
+
+      // 2. Restore normal scrolling ONLY after exit animation finishes (700ms) and preloader unmounts/hides
+      exitTimeout = setTimeout(() => {
+        restoreScroll();
+        window.removeEventListener("wheel", preventScroll);
+        window.removeEventListener("touchmove", preventScroll);
+
+        try {
+          sessionStorage.setItem("draftline_preloaded", "true");
+        } catch {
+          // Ignore storage error
+        }
+
         setIsActive(false);
       }, 700);
     };
@@ -113,27 +128,23 @@ export function HomepagePreloader() {
       if (fraction < 1) {
         animFrameId = requestAnimationFrame(updateProgress);
       } else {
-        setTimeout(unlockScroll, 120);
+        setTimeout(finishPreloader, 120);
       }
     };
 
     animFrameId = requestAnimationFrame(updateProgress);
 
-    // Hard failsafe timeout: absolutely guarantee scroll is restored after 2.0s
+    // Hard failsafe timeout: absolutely guarantee scroll is restored after 2.5s
     const failsafeTimeout = setTimeout(() => {
-      unlockScroll();
-    }, 2000);
+      finishPreloader();
+    }, 2500);
 
     return () => {
       cancelAnimationFrame(animFrameId);
       clearTimeout(failsafeTimeout);
+      if (exitTimeout) clearTimeout(exitTimeout);
       hasFinishedRef.current = true;
-      document.documentElement.style.overflow = originalHtmlOverflow;
-      document.body.style.overflow = originalBodyOverflow;
-      document.body.style.touchAction = originalBodyTouchAction;
-      if (window.__lenis) {
-        window.__lenis.start();
-      }
+      restoreScroll();
       window.removeEventListener("wheel", preventScroll);
       window.removeEventListener("touchmove", preventScroll);
     };
@@ -145,10 +156,10 @@ export function HomepagePreloader() {
 
   return (
     <>
-      {/* Immediate script to synchronously dismiss overlay on non-home routes, repeat visits, or reduced-motion before frame 0 paint */}
+      {/* Immediate script to synchronously lock scrolling on initial render while preloader is visible, or dismiss overlay on non-home routes/repeat visits before frame 0 paint */}
       <script
         dangerouslySetInnerHTML={{
-          __html: `(function(){try{var p=window.location.pathname;var s=sessionStorage.getItem('draftline_preloaded');var m=window.matchMedia('(prefers-reduced-motion: reduce)').matches;if((p!=='/'&&p!=='')||s==='true'||m){var el=document.getElementById('draftline-preloader');if(el){el.style.display='none';}}}catch(e){}})();`,
+          __html: `(function(){try{var p=window.location.pathname;var s=sessionStorage.getItem('draftline_preloaded');var m=window.matchMedia('(prefers-reduced-motion: reduce)').matches;if((p!=='/'&&p!=='')||s==='true'||m){var el=document.getElementById('draftline-preloader');if(el){el.style.display='none';}}else{document.documentElement.style.overflow='hidden';document.documentElement.style.touchAction='none';document.documentElement.style.overscrollBehavior='none';document.body.style.overflow='hidden';document.body.style.touchAction='none';document.body.style.overscrollBehavior='none';}}catch(e){}})();`,
         }}
       />
       <div
