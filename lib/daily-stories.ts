@@ -619,7 +619,7 @@ export async function generateDailyStories(options?: {
         };
 
         // Insert into Supabase posts table
-        // CRITICAL RULE: author_id is explicitly null (NEVER attached to signed-in user)
+        // CRITICAL RULE: author_id is ALWAYS null and author_name/author_role populated from editorial author pool (NEVER attached to signed-in user or queried from profiles)
         if (supabase) {
           const payload: Record<string, any> = {
             title: story.title.trim(),
@@ -630,20 +630,49 @@ export async function generateDailyStories(options?: {
             cover_image_url: assignedImage,
             read_time_minutes: story.readTimeMinutes,
             published: true,
-            author_id: null, // NEVER attach signed-in user's user_id or name
+            author_id: null, // NEVER query profiles or attach a user's author_id
+            author_name: assignedAuthor.name, // Editorial author name (e.g. Elena Vance)
+            author_role: assignedAuthor.role, // Editorial author role (e.g. Travel & Culture Editor)
             published_at: nowIso,
             created_at: nowIso,
             updated_at: nowIso,
           };
 
-          // Try inserting with published_at
+          // Try inserting with author_name, author_role, and published_at
           let { error: insertError } = await supabase.from("posts").insert(payload);
 
-          // If published_at column does not exist in schema (error 42703), retry without it
-          if (insertError && (insertError.code === "42703" || insertError.message?.includes("published_at"))) {
-            const { published_at: _, ...payloadWithoutPubAt } = payload;
-            const retryRes = await supabase.from("posts").insert(payloadWithoutPubAt);
+          // If author_name, author_role, or published_at column does not exist in schema (error 42703), retry gracefully
+          if (
+            insertError &&
+            (insertError.code === "42703" ||
+              insertError.message?.includes("published_at") ||
+              insertError.message?.includes("author_name") ||
+              insertError.message?.includes("author_role"))
+          ) {
+            const fallbackPayload = { ...payload };
+            if (
+              insertError.message?.includes("author_name") ||
+              insertError.message?.includes("author_role") ||
+              insertError.code === "42703"
+            ) {
+              delete fallbackPayload.author_name;
+              delete fallbackPayload.author_role;
+            }
+            if (insertError.message?.includes("published_at")) {
+              delete fallbackPayload.published_at;
+            }
+            const retryRes = await supabase.from("posts").insert(fallbackPayload);
             insertError = retryRes.error;
+
+            // Secondary fallback if published_at was also missing
+            if (
+              insertError &&
+              (insertError.code === "42703" || insertError.message?.includes("published_at"))
+            ) {
+              delete fallbackPayload.published_at;
+              const secondRetry = await supabase.from("posts").insert(fallbackPayload);
+              insertError = secondRetry.error;
+            }
           }
 
           if (insertError) {
