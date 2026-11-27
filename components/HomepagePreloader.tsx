@@ -6,7 +6,8 @@ import { DraftlineLogo } from "@/components/draftline-logo";
 
 export function HomepagePreloader() {
   const pathname = usePathname();
-  const [isActive, setIsActive] = useState(false);
+  // Frame 0 SSR HTML renders preloader overlay immediately to prevent any flash of unstyled content
+  const [isActive, setIsActive] = useState(true);
   const [isExiting, setIsExiting] = useState(false);
   const [progress, setProgress] = useState(0);
   const hasFinishedRef = useRef(false);
@@ -14,6 +15,7 @@ export function HomepagePreloader() {
   useEffect(() => {
     // Exclusively run on the homepage root route "/"
     if (pathname !== "/") {
+      setIsActive(false);
       return;
     }
 
@@ -21,20 +23,20 @@ export function HomepagePreloader() {
     if (typeof window !== "undefined") {
       const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
       if (mediaQuery.matches) {
+        setIsActive(false);
         return;
       }
 
       // Check if already preloaded in this browser session
       try {
         if (sessionStorage.getItem("draftline_preloaded") === "true") {
+          setIsActive(false);
           return;
         }
       } catch {
         // Ignore storage errors in restricted contexts
       }
     }
-
-    setIsActive(true);
 
     // Strictly lock scrolling on html and body + Lenis
     const originalHtmlOverflow = document.documentElement.style.overflow;
@@ -142,43 +144,52 @@ export function HomepagePreloader() {
   }
 
   return (
-    <div
-      aria-hidden="true"
-      className={`fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-surface-upper text-content-primary select-none transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-        isExiting
-          ? "opacity-0 -translate-y-2 pointer-events-none scale-[1.01]"
-          : "opacity-100 translate-y-0 pointer-events-auto"
-      }`}
-    >
-      <div className="flex flex-col items-center max-w-sm px-6 text-center">
-        {/* Editorial Brand Mark */}
-        <div className="mb-4 text-neutral-950 dark:text-white transition-transform duration-500 ease-out scale-100">
-          <DraftlineLogo className="w-7 h-7 sm:w-8 sm:h-8 text-neutral-950 dark:text-white animate-pulse" />
-        </div>
+    <>
+      {/* Immediate script to synchronously dismiss overlay on non-home routes, repeat visits, or reduced-motion before frame 0 paint */}
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `(function(){try{var p=window.location.pathname;var s=sessionStorage.getItem('draftline_preloaded');var m=window.matchMedia('(prefers-reduced-motion: reduce)').matches;if((p!=='/'&&p!=='')||s==='true'||m){var el=document.getElementById('draftline-preloader');if(el){el.style.display='none';}}}catch(e){}})();`,
+        }}
+      />
+      <div
+        id="draftline-preloader"
+        aria-hidden="true"
+        className={`fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-[#FFFFFF] dark:bg-[#0A0A0A] text-content-primary select-none transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+          isExiting
+            ? "opacity-0 -translate-y-2 pointer-events-none scale-[1.01]"
+            : "opacity-100 translate-y-0 pointer-events-auto"
+        }`}
+      >
+        <div className="flex flex-col items-center max-w-sm px-6 text-center">
+          {/* Editorial Brand Mark */}
+          <div className="mb-4 text-neutral-950 dark:text-white transition-transform duration-500 ease-out scale-100">
+            <DraftlineLogo className="w-7 h-7 sm:w-8 sm:h-8 text-neutral-950 dark:text-white animate-pulse" />
+          </div>
 
-        {/* Wordmark */}
-        <h2 className="font-sans font-extrabold text-2xl sm:text-3xl tracking-tight text-neutral-950 dark:text-white mb-2">
-          Draftline
-        </h2>
+          {/* Wordmark */}
+          <h2 className="font-sans font-extrabold text-2xl sm:text-3xl tracking-tight text-neutral-950 dark:text-white mb-2">
+            Draftline
+          </h2>
 
-        {/* Editorial Subtitle */}
-        <p className="font-mono text-[10px] sm:text-[11px] uppercase tracking-[0.22em] text-neutral-500 dark:text-neutral-400 mb-8">
-          Contemporary Editorial Journal
-        </p>
+          {/* Editorial Subtitle */}
+          <p className="font-mono text-[10px] sm:text-[11px] uppercase tracking-[0.22em] text-neutral-500 dark:text-neutral-400 mb-8">
+            Contemporary Editorial Journal
+          </p>
 
-        {/* Minimal Hairline Progress Meter */}
-        <div className="w-48 sm:w-56 h-[1.5px] bg-neutral-200 dark:bg-neutral-800 rounded-none overflow-hidden mb-4 relative">
-          <div
-            className="h-full bg-neutral-950 dark:bg-white transition-all duration-75 ease-out"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
+          {/* Minimal Hairline Progress Meter */}
+          <div className="w-48 sm:w-56 h-[1.5px] bg-neutral-200 dark:bg-neutral-800 rounded-none overflow-hidden mb-4 relative">
+            <div
+              className="h-full bg-neutral-950 dark:bg-white transition-all duration-75 ease-out"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
 
-        {/* Digital Counter */}
-        <div className="font-mono text-xs text-neutral-400 dark:text-neutral-500 tabular-nums">
-          {progress.toString().padStart(2, "0")}%
+          {/* Digital Counter */}
+          <div className="font-mono text-xs text-neutral-400 dark:text-neutral-500 tabular-nums">
+            {progress.toString().padStart(2, "0")}%
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
