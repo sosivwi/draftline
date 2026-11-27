@@ -290,7 +290,7 @@ export default async function PostPage({ params }: PostPageProps) {
               <span className="transition-transform duration-200 group-hover:translate-x-1">→</span>
             </Link>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-x-3 gap-y-12">
             {relatedPosts.map((p) => (
               <ArticleCard key={p.id} post={p} />
             ))}

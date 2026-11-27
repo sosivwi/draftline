@@ -130,9 +130,9 @@ export function ArticlesPageClient({
         </div>
 
         {/* =========================================================================
-            2-COLUMN BORDERLESS EDITORIAL POST GRID (12px gap)
+            2-COLUMN BORDERLESS EDITORIAL POST GRID (12px horizontal gap, 48px vertical gap)
             ========================================================================= */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-3 gap-y-12">
           {displayedPosts.map((post) => (
             <ArticleCard key={post.id} post={post} />
           ))}
