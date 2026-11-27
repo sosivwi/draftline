@@ -133,6 +133,12 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
         />
+        {/* Lock scrolling immediately on initial render before hydration if preloader is active */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var p=window.location.pathname;var s=sessionStorage.getItem('draftline_preloaded');var m=window.matchMedia('(prefers-reduced-motion: reduce)').matches;if((p==='/'||p==='')&&s!=='true'&&!m){document.documentElement.style.overflow='hidden';document.documentElement.style.touchAction='none';document.documentElement.style.overscrollBehavior='none';document.body.style.overflow='hidden';document.body.style.touchAction='none';document.body.style.overscrollBehavior='none';}}catch(e){}})();`,
+          }}
+        />
       </head>
       <body
         className={`${geistMono.variable} font-sans antialiased min-h-screen flex flex-col bg-surface-upper text-content-primary selection:bg-accent selection:text-accent-foreground`}

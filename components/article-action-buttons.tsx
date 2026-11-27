@@ -245,7 +245,7 @@ export function ArticleActionButtons({ post }: ArticleActionButtonsProps) {
     try {
       const currentPath =
         typeof window !== "undefined"
-          ? window.location.pathname
+          ? window.location.pathname + window.location.search
           : `/posts/${post.slug}`;
       const callbackUrl = new URL("/auth/callback", window.location.origin);
       callbackUrl.searchParams.set("next", currentPath);
@@ -269,7 +269,7 @@ export function ArticleActionButtons({ post }: ArticleActionButtonsProps) {
 
   const currentArticleUrl =
     typeof window !== "undefined"
-      ? window.location.pathname
+      ? window.location.pathname + window.location.search
       : `/posts/${post.slug}`;
 
   return (

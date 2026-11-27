@@ -78,7 +78,10 @@ export function HomepagePreloader() {
     };
 
     window.addEventListener("wheel", preventScroll, { passive: false });
+    document.addEventListener("wheel", preventScroll, { passive: false });
     window.addEventListener("touchmove", preventScroll, { passive: false });
+    document.addEventListener("touchmove", preventScroll, { passive: false });
+    document.documentElement.addEventListener("touchmove", preventScroll, { passive: false });
     window.addEventListener("keydown", (e: KeyboardEvent) => {
       if (
         !hasFinishedRef.current &&
@@ -101,7 +104,10 @@ export function HomepagePreloader() {
       exitTimeout = setTimeout(() => {
         restoreScroll();
         window.removeEventListener("wheel", preventScroll);
+        document.removeEventListener("wheel", preventScroll);
         window.removeEventListener("touchmove", preventScroll);
+        document.removeEventListener("touchmove", preventScroll);
+        document.documentElement.removeEventListener("touchmove", preventScroll);
 
         try {
           sessionStorage.setItem("draftline_preloaded", "true");
@@ -146,7 +152,10 @@ export function HomepagePreloader() {
       hasFinishedRef.current = true;
       restoreScroll();
       window.removeEventListener("wheel", preventScroll);
+      document.removeEventListener("wheel", preventScroll);
       window.removeEventListener("touchmove", preventScroll);
+      document.removeEventListener("touchmove", preventScroll);
+      document.documentElement.removeEventListener("touchmove", preventScroll);
     };
   }, [pathname]);
 

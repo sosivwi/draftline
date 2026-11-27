@@ -64,7 +64,8 @@ function WriteForm() {
       } = await supabase.auth.getUser();
 
       if (!currentUser) {
-        router.push(editId ? `/login?next=/write?edit=${editId}` : "/login?next=/write");
+        const targetPath = editId ? `/write?edit=${encodeURIComponent(editId)}` : "/write";
+        router.push(`/login?next=${encodeURIComponent(targetPath)}`);
       } else {
         setUser(currentUser);
         setAuthChecking(false);

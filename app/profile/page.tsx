@@ -181,7 +181,11 @@ function ProfileContent() {
       } = await supabase.auth.getUser();
 
       if (!currentUser) {
-        router.push("/login?next=/profile");
+        const fullCurrentPath =
+          typeof window !== "undefined"
+            ? window.location.pathname + window.location.search
+            : "/profile";
+        router.push(`/login?next=${encodeURIComponent(fullCurrentPath)}`);
         return;
       }
 

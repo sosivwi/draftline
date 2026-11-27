@@ -339,7 +339,7 @@ export function Navbar() {
             <Link
               href={
                 pathname && pathname !== "/login" && pathname !== "/signup"
-                  ? `/login?next=${encodeURIComponent(pathname)}`
+                  ? `/login?next=${encodeURIComponent(typeof window !== "undefined" ? window.location.pathname + window.location.search : pathname)}`
                   : "/login"
               }
               className="inline-flex items-center justify-center px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 shadow-sm active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 bg-accent text-accent-foreground hover:opacity-90"
