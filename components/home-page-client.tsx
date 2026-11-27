@@ -67,8 +67,8 @@ export function HomePageClient({ allPosts }: HomePageClientProps) {
             </div>
           </div>
 
-          {/* 2-Column Editorial Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-12">
+          {/* 2-Column Editorial Grid (12px gap) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {secondaryPosts.map((post) => (
               <ArticleCard key={post.id} post={post} />
             ))}

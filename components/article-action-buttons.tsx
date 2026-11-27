@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Share2, Bookmark, Check } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { isPostSaved, toggleSavedPost } from "@/lib/saved-posts";
@@ -14,6 +15,7 @@ interface ArticleActionButtonsProps {
 }
 
 export function ArticleActionButtons({ post }: ArticleActionButtonsProps) {
+  const router = useRouter();
   const [copied, setCopied] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
@@ -28,9 +30,15 @@ export function ArticleActionButtons({ post }: ArticleActionButtonsProps) {
           data: { user },
         } = await supabase.auth.getUser();
         const currentUserId = user?.id || null;
-        if (mounted) {
-          setUserId(currentUserId);
+        if (!mounted) return;
+        setUserId(currentUserId);
+
+        // Signed-out visitors cannot have saved articles
+        if (!currentUserId) {
+          setIsSaved(false);
+          return;
         }
+
         const saved = await isPostSaved(post.slug, currentUserId);
         if (mounted) {
           setIsSaved(saved);
@@ -42,12 +50,27 @@ export function ArticleActionButtons({ post }: ArticleActionButtonsProps) {
 
     init();
 
+    // Listen for auth state changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      const currentUserId = session?.user?.id || null;
+      if (!mounted) return;
+      setUserId(currentUserId);
+
+      if (!currentUserId) {
+        setIsSaved(false);
+      } else {
+        const saved = await isPostSaved(post.slug, currentUserId);
+        if (mounted) setIsSaved(saved);
+      }
+    });
+
     // Listen to saved posts sync events across the window (same-tab & cross-component)
     const handleSavedUpdated = (e: Event) => {
       const customEvent = e as CustomEvent<{
         slug: string;
         isSaved: boolean;
-        allSlugs?: string[];
       }>;
       if (customEvent.detail && customEvent.detail.slug === post.slug) {
         setIsSaved(customEvent.detail.isSaved);
@@ -57,6 +80,7 @@ export function ArticleActionButtons({ post }: ArticleActionButtonsProps) {
     window.addEventListener("draftline:saved-posts-updated", handleSavedUpdated);
     return () => {
       mounted = false;
+      subscription?.unsubscribe();
       window.removeEventListener(
         "draftline:saved-posts-updated",
         handleSavedUpdated
@@ -109,6 +133,12 @@ export function ArticleActionButtons({ post }: ArticleActionButtonsProps) {
   };
 
   const handleToggleSave = async () => {
+    // REQUIRE SIGN-IN: When a signed-out visitor clicks Save, do NOT save and immediately navigate to /login
+    if (!userId) {
+      router.push("/login");
+      return;
+    }
+
     try {
       const nextSaved = await toggleSavedPost(post.slug, userId);
       setIsSaved(nextSaved);
