@@ -27,6 +27,36 @@ export function ArticleActionButtons({ post }: ArticleActionButtonsProps) {
     let mounted = true;
     const supabase = createClient();
 
+    // Check and execute any pending save target stored before Google OAuth redirect
+    const checkAndExecutePendingSave = async (currentUserId: string): Promise<boolean> => {
+      if (typeof window === "undefined") return false;
+      try {
+        const pendingSlug = sessionStorage.getItem("draftline_pending_save_slug");
+        if (pendingSlug && pendingSlug === post.slug) {
+          // Clear marker immediately so it NEVER runs twice
+          sessionStorage.removeItem("draftline_pending_save_slug");
+
+          const alreadySaved = await isPostSaved(post.slug, currentUserId);
+          let nextSaved = true;
+          if (!alreadySaved) {
+            nextSaved = await toggleSavedPost(post.slug, currentUserId);
+          }
+          if (mounted) {
+            setIsSaved(nextSaved);
+            window.dispatchEvent(
+              new CustomEvent("draftline:saved-posts-updated", {
+                detail: { slug: post.slug, isSaved: nextSaved },
+              })
+            );
+          }
+          return true;
+        }
+      } catch (err) {
+        console.warn("Could not execute pending save after OAuth:", err);
+      }
+      return false;
+    };
+
     async function init() {
       try {
         const {
@@ -41,6 +71,10 @@ export function ArticleActionButtons({ post }: ArticleActionButtonsProps) {
           setIsSaved(false);
           return;
         }
+
+        // Execute pending save if returning from Google OAuth
+        const executed = await checkAndExecutePendingSave(currentUserId);
+        if (executed) return;
 
         const saved = await isPostSaved(post.slug, currentUserId);
         if (mounted) {
@@ -64,8 +98,11 @@ export function ArticleActionButtons({ post }: ArticleActionButtonsProps) {
       if (!currentUserId) {
         setIsSaved(false);
       } else {
-        const saved = await isPostSaved(post.slug, currentUserId);
-        if (mounted) setIsSaved(saved);
+        const executed = await checkAndExecutePendingSave(currentUserId);
+        if (!executed) {
+          const saved = await isPostSaved(post.slug, currentUserId);
+          if (mounted) setIsSaved(saved);
+        }
       }
     });
 
@@ -137,6 +174,12 @@ export function ArticleActionButtons({ post }: ArticleActionButtonsProps) {
   const handleToggleSave = async () => {
     // REQUIRE SIGN-IN: When a signed-out visitor clicks Save, open the Portaled Auth Modal
     if (!userId) {
+      // Persist pending save target in sessionStorage right before opening the modal
+      if (typeof window !== "undefined") {
+        try {
+          sessionStorage.setItem("draftline_pending_save_slug", post.slug);
+        } catch {}
+      }
       setIsAuthModalOpen(true);
       return;
     }
@@ -151,8 +194,17 @@ export function ArticleActionButtons({ post }: ArticleActionButtonsProps) {
 
   const handleAuthSuccess = async (user: User) => {
     setUserId(user.id);
+    if (typeof window !== "undefined") {
+      try {
+        sessionStorage.removeItem("draftline_pending_save_slug");
+      } catch {}
+    }
     try {
-      const nextSaved = await toggleSavedPost(post.slug, user.id);
+      const alreadySaved = await isPostSaved(post.slug, user.id);
+      let nextSaved = true;
+      if (!alreadySaved) {
+        nextSaved = await toggleSavedPost(post.slug, user.id);
+      }
       setIsSaved(nextSaved);
       window.dispatchEvent(
         new CustomEvent("draftline:saved-posts-updated", {
@@ -222,6 +274,7 @@ export function ArticleActionButtons({ post }: ArticleActionButtonsProps) {
         onClose={() => setIsAuthModalOpen(false)}
         onSuccess={handleAuthSuccess}
         currentPath={currentArticleUrl}
+        pendingSaveSlug={post.slug}
         title="Sign In to Save"
         subtitle="Sign in to save this story to your personal reading archive."
       />

@@ -37,6 +37,7 @@ export interface AuthModalProps {
   onClose: () => void;
   onSuccess?: (user: User) => void;
   currentPath?: string;
+  pendingSaveSlug?: string;
   title?: string;
   subtitle?: string;
 }
@@ -46,6 +47,7 @@ export function AuthModal({
   onClose,
   onSuccess,
   currentPath,
+  pendingSaveSlug,
   title = "Sign In to Save",
   subtitle = "Sign in to save this story to your personal reading archive.",
 }: AuthModalProps) {
@@ -121,6 +123,11 @@ export function AuthModal({
         }
 
         if (data.user) {
+          if (typeof window !== "undefined") {
+            try {
+              sessionStorage.removeItem("draftline_pending_save_slug");
+            } catch {}
+          }
           onSuccess?.(data.user);
         }
       } else {
@@ -142,6 +149,11 @@ export function AuthModal({
         }
 
         if (data.user) {
+          if (typeof window !== "undefined") {
+            try {
+              sessionStorage.removeItem("draftline_pending_save_slug");
+            } catch {}
+          }
           onSuccess?.(data.user);
         }
       }
@@ -159,6 +171,23 @@ export function AuthModal({
   const handleGoogleSignIn = async () => {
     setError(null);
     setGoogleLoading(true);
+
+    // Persist pending save target in sessionStorage before Google OAuth redirect
+    if (typeof window !== "undefined") {
+      try {
+        const slugToSave =
+          pendingSaveSlug ||
+          (targetPath && targetPath.startsWith("/posts/")
+            ? targetPath.replace("/posts/", "").split("?")[0].split("/")[0]
+            : null);
+
+        if (slugToSave) {
+          sessionStorage.setItem("draftline_pending_save_slug", slugToSave);
+        }
+      } catch (storageErr) {
+        console.warn("Could not set pending save in sessionStorage:", storageErr);
+      }
+    }
 
     const supabase = createClient();
     try {
