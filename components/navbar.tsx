@@ -15,6 +15,7 @@ import {
   LogOut,
   ChevronDown,
   Bookmark,
+  X,
 } from "lucide-react";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 
@@ -40,6 +41,86 @@ export function Navbar() {
   const [avatarError, setAvatarError] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Mobile navigation overlay state
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isAnimatingOut, setIsAnimatingOut] = useState(false);
+
+  // Scroll locking helper for mobile overlay
+  const lockScroll = useCallback(() => {
+    document.documentElement.style.overflow = "hidden";
+    document.documentElement.style.touchAction = "none";
+    document.documentElement.style.overscrollBehavior = "none";
+    document.body.style.overflow = "hidden";
+    document.body.style.touchAction = "none";
+    document.body.style.overscrollBehavior = "none";
+  }, []);
+
+  const unlockScroll = useCallback(() => {
+    document.documentElement.style.overflow = "";
+    document.documentElement.style.touchAction = "";
+    document.documentElement.style.overscrollBehavior = "";
+    document.body.style.overflow = "";
+    document.body.style.touchAction = "";
+    document.body.style.overscrollBehavior = "";
+  }, []);
+
+  const handleOpenMenu = () => {
+    setIsDropdownOpen(false);
+    setIsAnimatingOut(false);
+    setIsMobileMenuOpen(true);
+    lockScroll();
+  };
+
+  const handleCloseMenu = (targetHref?: string) => {
+    setIsAnimatingOut(true);
+    setIsMobileMenuOpen(false);
+    unlockScroll();
+
+    setTimeout(() => {
+      setIsAnimatingOut(false);
+      if (targetHref && targetHref !== pathname) {
+        router.push(targetHref);
+      }
+    }, 450);
+  };
+
+  // Ensure scroll lock is synchronized with isMobileMenuOpen state
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      lockScroll();
+    } else if (!isAnimatingOut) {
+      unlockScroll();
+    }
+    return () => {
+      unlockScroll();
+    };
+  }, [isMobileMenuOpen, isAnimatingOut, lockScroll, unlockScroll]);
+
+  // Close mobile menu on desktop resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768 && (isMobileMenuOpen || isAnimatingOut)) {
+        setIsMobileMenuOpen(false);
+        setIsAnimatingOut(false);
+        unlockScroll();
+      }
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [isMobileMenuOpen, isAnimatingOut, unlockScroll]);
+
+  // Close mobile menu on Escape key
+  useEffect(() => {
+    if (!isMobileMenuOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        handleCloseMenu();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isMobileMenuOpen]);
 
   // Close dropdown on click outside
   useEffect(() => {
@@ -139,6 +220,8 @@ export function Navbar() {
   // Handle navbar hide/reveal on scroll AND auto-close dropdown
   useEffect(() => {
     const handleScroll = () => {
+      if (isMobileMenuOpen) return;
+
       // Immediately close user profile dropdown menu whenever page scrolls
       setIsDropdownOpen(false);
 
@@ -157,7 +240,7 @@ export function Navbar() {
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [lastScrollY]);
+  }, [lastScrollY, isMobileMenuOpen]);
 
   const handleSignOut = async () => {
     setIsDropdownOpen(false);
@@ -175,13 +258,26 @@ export function Navbar() {
     { href: "/about", label: "About" },
   ];
 
+  const mobileNavLinks = [
+    { href: "/", label: "Home" },
+    { href: "/articles", label: "Articles" },
+    { href: "/topics", label: "Topic" },
+    { href: "/about", label: "About" },
+  ];
+
+  const isMenuUnified = isMobileMenuOpen || isAnimatingOut;
+
   return (
     <header
-      className={`sticky top-0 z-40 w-full border-b border-border-subtle bg-surface-upper transition-transform duration-300 ease-in-out ${
-        isVisible ? "translate-y-0" : "-translate-y-full"
+      className={`sticky top-0 z-50 w-full transition-colors duration-300 ease-in-out ${
+        isMenuUnified
+          ? "bg-[#FAF9F6] dark:bg-[#0A0A0A] border-transparent border-b-0 [transform:none]"
+          : `border-b border-border-subtle bg-surface-upper ${
+              isVisible ? "translate-y-0" : "-translate-y-full"
+            }`
       }`}
     >
-      <div className="w-[90%] mx-auto h-16 flex items-center justify-between">
+      <div className="w-[90%] mx-auto h-16 flex items-center justify-between relative z-50">
         {/* Left: Brand Wordmark + DraftlineLogo */}
         <div className="flex items-center gap-6 lg:gap-8 shrink-0">
           <BrandLogo size="md" href="/" />
@@ -339,7 +435,11 @@ export function Navbar() {
             <Link
               href={
                 pathname && pathname !== "/login" && pathname !== "/signup"
-                  ? `/login?next=${encodeURIComponent(typeof window !== "undefined" ? window.location.pathname + window.location.search : pathname)}`
+                  ? `/login?next=${encodeURIComponent(
+                      typeof window !== "undefined"
+                        ? window.location.pathname + window.location.search
+                        : pathname
+                    )}`
                   : "/login"
               }
               className="inline-flex items-center justify-center px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 shadow-sm active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 bg-accent text-accent-foreground hover:opacity-90"
@@ -347,7 +447,69 @@ export function Navbar() {
               Sign In
             </Link>
           )}
+
+          {/* Mobile-only 2-line Hamburger Menu Icon toggling to X */}
+          <button
+            type="button"
+            onClick={() => {
+              if (isMobileMenuOpen) {
+                handleCloseMenu();
+              } else {
+                handleOpenMenu();
+              }
+            }}
+            aria-label={isMobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+            aria-expanded={isMobileMenuOpen}
+            className="md:hidden flex items-center justify-center w-8 h-8 rounded-full hover:bg-surface-muted transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          >
+            {isMobileMenuOpen ? (
+              <X className="w-5 h-5 text-content-primary" />
+            ) : (
+              <svg
+                className="w-5 h-5 text-content-primary"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                aria-hidden="true"
+              >
+                <line x1="4" y1="8.5" x2="20" y2="8.5" />
+                <line x1="4" y1="15.5" x2="20" y2="15.5" />
+              </svg>
+            )}
+          </button>
         </div>
+      </div>
+
+      {/* Full-screen 100dvh Mobile Menu Overlay */}
+      <div
+        aria-hidden={!isMobileMenuOpen}
+        className={`fixed inset-0 h-dvh w-screen z-40 bg-[#FAF9F6] dark:bg-[#0A0A0A] md:hidden flex flex-col transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-y-auto ${
+          isMobileMenuOpen && !isAnimatingOut
+            ? "translate-y-0 pointer-events-auto"
+            : "-translate-y-full pointer-events-none"
+        }`}
+      >
+        {/* Top spacer matching top bar height so links start below the top bar */}
+        <div className="h-16 shrink-0" aria-hidden="true" />
+
+        {/* 4 big, bold, left-aligned menu links stacked vertically on the left side with exact 84px vertical spacing */}
+        <nav className="w-[90%] mx-auto flex flex-col items-start justify-start gap-[84px] pt-10 pb-16">
+          {mobileNavLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              onClick={(e) => {
+                e.preventDefault();
+                handleCloseMenu(link.href);
+              }}
+              className="text-left font-sans font-bold text-3xl sm:text-4xl tracking-tight text-content-primary no-underline hover:opacity-75 transition-opacity"
+            >
+              {link.label}
+            </Link>
+          ))}
+        </nav>
       </div>
     </header>
   );
