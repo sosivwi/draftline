@@ -260,7 +260,7 @@ export function Navbar() {
   const mobileNavLinks = [
     { href: "/", label: "Home" },
     { href: "/articles", label: "Articles" },
-    { href: "/topics", label: "Topic" },
+    { href: "/topics", label: "Topics" },
     { href: "/about", label: "About" },
   ];
 
@@ -270,7 +270,7 @@ export function Navbar() {
     <header
       className={`sticky top-0 z-50 w-full relative transition-colors duration-300 ease-in-out ${
         isMenuUnified
-          ? "bg-[#FAF9F6] dark:bg-[#0A0A0A] border-transparent border-b-0 [transform:none]"
+          ? "bg-surface-upper border-transparent border-b-0 [transform:none]"
           : `border-b border-border-subtle bg-surface-upper ${
               isVisible ? "translate-y-0" : "-translate-y-full"
             }`
@@ -485,14 +485,14 @@ export function Navbar() {
       {/* Mobile Drawer Panel anchored directly below the bottom edge of the existing top bar */}
       <div
         aria-hidden={!isMobileMenuOpen}
-        className={`absolute top-full left-0 right-0 h-[calc(100dvh-100%)] w-full bg-[#FAF9F6] dark:bg-[#0A0A0A] md:hidden overflow-y-auto transition-[clip-path,opacity] duration-[320ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
+        className={`absolute top-full left-0 right-0 h-[calc(100dvh-100%)] w-full bg-surface-upper text-content-primary md:hidden overflow-y-auto transition-[clip-path,opacity] duration-[320ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
           isMobileMenuOpen && !isAnimatingOut
             ? "[clip-path:inset(0_0_0_0)] opacity-100 pointer-events-auto"
             : "[clip-path:inset(0_0_100%_0)] opacity-0 pointer-events-none"
         }`}
       >
-        {/* Compact links with tight spacing (gap-5 pt-6) and 26px font size */}
-        <nav className="w-[90%] mx-auto flex flex-col items-start justify-start gap-5 pt-6 pb-12">
+        {/* Big, bold typography (text-[36px] sm:text-[40px]) with 24px vertical spacing (gap-6 pt-10) */}
+        <nav className="w-[90%] mx-auto flex flex-col items-start justify-start gap-6 pt-10 pb-16">
           {mobileNavLinks.map((link) => (
             <Link
               key={link.href}
@@ -501,7 +501,7 @@ export function Navbar() {
                 e.preventDefault();
                 handleCloseMenu(link.href);
               }}
-              className="text-left font-sans font-bold text-[26px] tracking-tight leading-none text-content-primary no-underline hover:opacity-75 transition-opacity"
+              className="text-left font-sans font-bold text-[36px] sm:text-[40px] tracking-tight leading-[1.15] text-content-primary no-underline hover:opacity-75 transition-opacity"
             >
               {link.label}
             </Link>
