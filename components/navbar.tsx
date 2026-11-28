@@ -15,7 +15,6 @@ import {
   LogOut,
   ChevronDown,
   Bookmark,
-  X,
 } from "lucide-react";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 
@@ -42,11 +41,11 @@ export function Navbar() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Mobile navigation overlay state
+  // Mobile navigation drawer state
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAnimatingOut, setIsAnimatingOut] = useState(false);
 
-  // Scroll locking helper for mobile overlay
+  // Scroll locking helper for mobile drawer
   const lockScroll = useCallback(() => {
     document.documentElement.style.overflow = "hidden";
     document.documentElement.style.touchAction = "none";
@@ -82,7 +81,7 @@ export function Navbar() {
       if (targetHref && targetHref !== pathname) {
         router.push(targetHref);
       }
-    }, 450);
+    }, 320);
   };
 
   // Ensure scroll lock is synchronized with isMobileMenuOpen state
@@ -269,7 +268,7 @@ export function Navbar() {
 
   return (
     <header
-      className={`sticky top-0 z-50 w-full transition-colors duration-300 ease-in-out ${
+      className={`sticky top-0 z-50 w-full relative transition-colors duration-300 ease-in-out ${
         isMenuUnified
           ? "bg-[#FAF9F6] dark:bg-[#0A0A0A] border-transparent border-b-0 [transform:none]"
           : `border-b border-border-subtle bg-surface-upper ${
@@ -277,12 +276,13 @@ export function Navbar() {
             }`
       }`}
     >
+      {/* Existing top navbar row anchored permanently at the top */}
       <div className="w-[90%] mx-auto h-16 flex items-center justify-between relative z-50">
         {/* Left: Brand Wordmark + DraftlineLogo */}
         <div className="flex items-center gap-6 lg:gap-8 shrink-0">
           <BrandLogo size="md" href="/" />
 
-          {/* Navigation Links */}
+          {/* Desktop Navigation Links */}
           <nav className="hidden md:flex items-center gap-1 sm:gap-2">
             {navLinks.map((link) => {
               const isActive =
@@ -448,7 +448,7 @@ export function Navbar() {
             </Link>
           )}
 
-          {/* Mobile-only 2-line Hamburger Menu Icon toggling to X */}
+          {/* Mobile-only 2-line Hamburger Menu Icon morphing smoothly to X in place */}
           <button
             type="button"
             onClick={() => {
@@ -462,40 +462,37 @@ export function Navbar() {
             aria-expanded={isMobileMenuOpen}
             className="md:hidden flex items-center justify-center w-8 h-8 rounded-full hover:bg-surface-muted transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
-            {isMobileMenuOpen ? (
-              <X className="w-5 h-5 text-content-primary" />
-            ) : (
-              <svg
-                className="w-5 h-5 text-content-primary"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                aria-hidden="true"
-              >
-                <line x1="4" y1="8.5" x2="20" y2="8.5" />
-                <line x1="4" y1="15.5" x2="20" y2="15.5" />
-              </svg>
-            )}
+            <div className="relative w-[18px] h-[18px] flex items-center justify-center" aria-hidden="true">
+              <span
+                className={`absolute h-[1.5px] w-[18px] bg-content-primary rounded-full transition-all duration-[320ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
+                  isMobileMenuOpen
+                    ? "rotate-45 translate-y-0"
+                    : "-translate-y-[4.5px]"
+                }`}
+              />
+              <span
+                className={`absolute h-[1.5px] w-[18px] bg-content-primary rounded-full transition-all duration-[320ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
+                  isMobileMenuOpen
+                    ? "-rotate-45 translate-y-0"
+                    : "translate-y-[4.5px]"
+                }`}
+              />
+            </div>
           </button>
         </div>
       </div>
 
-      {/* Full-screen 100dvh Mobile Menu Overlay */}
+      {/* Mobile Drawer Panel anchored directly below the bottom edge of the existing top bar */}
       <div
         aria-hidden={!isMobileMenuOpen}
-        className={`fixed inset-0 h-dvh w-screen z-40 bg-[#FAF9F6] dark:bg-[#0A0A0A] md:hidden flex flex-col transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-y-auto ${
+        className={`absolute top-full left-0 right-0 h-[calc(100dvh-100%)] w-full bg-[#FAF9F6] dark:bg-[#0A0A0A] md:hidden overflow-y-auto transition-[clip-path,opacity] duration-[320ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
           isMobileMenuOpen && !isAnimatingOut
-            ? "translate-y-0 pointer-events-auto"
-            : "-translate-y-full pointer-events-none"
+            ? "[clip-path:inset(0_0_0_0)] opacity-100 pointer-events-auto"
+            : "[clip-path:inset(0_0_100%_0)] opacity-0 pointer-events-none"
         }`}
       >
-        {/* Top spacer matching top bar height so links start below the top bar */}
-        <div className="h-16 shrink-0" aria-hidden="true" />
-
-        {/* 4 big, bold, left-aligned menu links stacked vertically on the left side with exact 84px vertical spacing */}
-        <nav className="w-[90%] mx-auto flex flex-col items-start justify-start gap-[84px] pt-10 pb-16">
+        {/* Compact links with tight spacing (gap-5 pt-6) and 26px font size */}
+        <nav className="w-[90%] mx-auto flex flex-col items-start justify-start gap-5 pt-6 pb-12">
           {mobileNavLinks.map((link) => (
             <Link
               key={link.href}
@@ -504,7 +501,7 @@ export function Navbar() {
                 e.preventDefault();
                 handleCloseMenu(link.href);
               }}
-              className="text-left font-sans font-bold text-3xl sm:text-4xl tracking-tight text-content-primary no-underline hover:opacity-75 transition-opacity"
+              className="text-left font-sans font-bold text-[26px] tracking-tight leading-none text-content-primary no-underline hover:opacity-75 transition-opacity"
             >
               {link.label}
             </Link>
